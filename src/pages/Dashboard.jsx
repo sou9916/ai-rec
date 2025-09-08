@@ -14,25 +14,25 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-// ...existing code...
+
 
 export default function Hero() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // sidebar state. initialize open on mount for desktop but allow user toggles
+  
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
 
-  // set initial state only (don't overwrite user toggles on resize)
+  
   useEffect(() => {
-    // if window size changed between render and mount, ensure reasonable default
+   
     if (typeof window !== "undefined") {
       setSidebarOpen(window.innerWidth >= 768);
     }
-    // no resize listener — let user toggle freely
+    
   }, []);
 
   const fetchRecommendations = async () => {
@@ -112,7 +112,7 @@ export default function Hero() {
               <p className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent leading-none">
                 AiRec
               </p>
-              <p className="text-xs text-gray-500 -mt-0.5">
+              <p className="text-xs text-gray-500 mt-0.5">
                 Personalized picks that feel yours
               </p>
             </div>
