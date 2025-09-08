@@ -61,9 +61,9 @@ export default function Navbar() {
           <Link to="/features" className="text-gray-700 hover:text-indigo-600">
             Features
           </Link>
-          <a href="#pricing" className="text-gray-700 hover:text-indigo-600">
+          <Link to="/pricing" className="text-gray-700 hover:text-indigo-600">
             Pricing
-          </a>
+          </Link>
           <Link to="/about" className="text-gray-700 hover:text-indigo-600">
             About Us
           </Link>

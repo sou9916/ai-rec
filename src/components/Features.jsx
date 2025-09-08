@@ -1,11 +1,10 @@
-"use client";
 import { motion } from "framer-motion";
 
 const features = [
   {
     icon: "🤖",
-    title: "AI‑Driven Recommendations",
-    desc: "Delivers personalized suggestions in real‑time, adapting to your preferences and past interactions.",
+    title: "AI-Driven Recommendations",
+    desc: "Delivers personalized suggestions in real-time, adapting to your preferences and past interactions.",
   },
   {
     icon: "📊",
@@ -14,7 +13,7 @@ const features = [
   },
   {
     icon: "⚡",
-    title: "Lightning‑Fast Search",
+    title: "Lightning-Fast Search",
     desc: "Find exactly what you need in milliseconds with our optimized AI search engine.",
   },
   {
@@ -24,12 +23,12 @@ const features = [
   },
   {
     icon: "🛡️",
-    title: "Privacy‑First Design",
-    desc: "Your data stays secure with end‑to‑end encryption and transparent handling policies.",
+    title: "Privacy-First Design",
+    desc: "Your data stays secure with end-to-end encryption and transparent handling policies.",
   },
   {
     icon: "📱",
-    title: "Cross‑Platform Access",
+    title: "Cross-Platform Access",
     desc: "Use AiRec anywhere — desktop, mobile, or embedded in your own applications.",
   },
 ];

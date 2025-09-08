@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import { Features } from "./components/Features";
 import AboutUS from "./components/AboutUS";
 import Loader from "./components/Loader"; // <- import loader
+import Pricing from "./components/Pricing";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/about" element={<AboutUS />} />
       </Routes>
     </Router>

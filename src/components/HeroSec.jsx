@@ -122,7 +122,7 @@ const HeroSec = () => {
 
   return (
     <section className="relative h-screen flex flex-col md:flex-row bg-gradient-to-b from-neutral-50 to-neutral-100 overflow-hidden">
-      {/* LEFT SIDE */}
+      {/* LEFT SIDE */}      
       <motion.div
         className="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-12 py-6 z-10"
         initial={{ opacity: 0, x: -300 }}
@@ -172,6 +172,7 @@ const HeroSec = () => {
           </motion.button>
         </motion.div>
       </motion.div>
+      
 
       {/* RIGHT SIDE */}
       <div className="flex-1 flex justify-center items-center relative overflow-hidden py-4 sm:py-6">
