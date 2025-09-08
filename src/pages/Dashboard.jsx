@@ -80,11 +80,9 @@ export default function Hero() {
 
   const suggest = (text) => {
     setInput(text);
-    // Optional: send immediately
-    // handleSend();
   };
 
-  // removed animated background (gsap + framer-motion) per request
+  
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-white to-gray-50 text-gray-800 relative">
       {/* Top accent (static) */}
@@ -93,7 +91,7 @@ export default function Hero() {
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Header sidebar toggle (moved to left) */}
+            {/* Header sidebar toggle */}
             <button
               onClick={() => setSidebarOpen((s) => !s)}
               className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-white border border-gray-200 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
@@ -126,7 +124,7 @@ export default function Hero() {
               onClick={() => {
                 setMessages([]);
                 setInput("");
-                // on mobile close the sidebar so new chat is visible
+                
                 if (typeof window !== "undefined" && window.innerWidth < 768) {
                   setSidebarOpen(false);
                 }
@@ -170,7 +168,7 @@ export default function Hero() {
               <p className="text-lg font-semibold">Explore</p>
               <p className="text-xs text-gray-500 -mt-0.5">Quick access</p>
             </div>
-            {/* sidebar header toggle removed - use header toggle on the left */}
+           
           </div>
 
           <nav className="px-3 md:px-0 py-3 md:py-0 space-y-2 md:flex-1 overflow-auto">
@@ -315,7 +313,7 @@ export default function Hero() {
     </div>
   );
 }
-// ...existing code...
+
 
 /* ——— Components ——— */
 
