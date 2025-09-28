@@ -195,7 +195,7 @@ export default function Navbar() {
 
             {/* Mobile menu content */}
             <motion.div
-              className="fixed top-20 left-4 right-4 z-50"
+              className="fixed top-25 left-4 right-4 z-50"
               initial="hidden"
               animate="visible"
               exit="exit"
