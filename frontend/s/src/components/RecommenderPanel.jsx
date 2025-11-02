@@ -1,48 +1,61 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Papa from "papaparse";
+import { Upload, Sparkles, TrendingUp, ChevronDown, Loader2, CheckCircle, AlertCircle, Play } from 'lucide-react';
 
 const API_URL = "http://localhost:8000";
 
-// --- UI Components (re-usable) ---
 const Input = (props) => (
   <input
     {...props}
-    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-white"
   />
 );
 
 const Select = (props) => (
-  <select
-    {...props}
-    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-  >
-    {props.children}
-  </select>
+  <div className="relative">
+    <select
+      {...props}
+      className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white appearance-none transition-all duration-200"
+    >
+      {props.children}
+    </select>
+    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+  </div>
 );
 
-const Button = ({ children, ...props }) => (
-  <button
-    {...props}
-    className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-  >
-    {children}
-  </button>
-);
+const Button = ({ children, variant = "primary", icon: Icon, ...props }) => {
+  const variants = {
+    primary: "bg-gradient-to-r from-cyan-600 via-cyan-800 to-cyan-600 hover:from-cyan-800 hover:via-cyan-600 hover:to-cyan-800 text-white shadow-lg shadow-blue-500/30 cursor-pointer",
+    secondary: "bg-white border-2 border-gray-200 hover:border-cyan-500 text-gray-700 hover:text-blue-600"
+  };
 
-const Card = ({ children, className }) => (
-  <div className={`p-6 bg-white rounded-lg shadow-md ${className || ""}`}>
+  return (
+    <button
+      {...props}
+      className={`w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 ${variants[variant]}`}
+    >
+      {Icon && <Icon className="w-5 h-5" />}
+      <span>{children}</span>
+    </button>
+  );
+};
+
+const Card = ({ children, className, gradient = false }) => (
+  <div className={`bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden ${gradient ? 'bg-gradient-to-br from-white to-blue-50' : ''} ${className || ""}`}>
     {children}
   </div>
 );
 
-// --- Schema Mapper Component ---
 const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
-  <div className="p-4 mt-4 border border-gray-200 rounded-lg">
-    <h3 className="font-semibold text-gray-700">{title}</h3>
-    <div className="space-y-3 mt-2">
+  <div className="mt-5 p-5 bg-gradient-to-br from-gray-50 to-blue-50 border border-gray-200 rounded-xl">
+    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+      <Sparkles className="w-4 h-4 mr-2 text-cyan-600" />
+      {title}
+    </h3>
+    <div className="space-y-4">
       {schemaKeys.map(({ key, label, multi }) => (
         <div key={key}>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             {label}
           </label>
           <Select
@@ -54,7 +67,7 @@ const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
                 : e.target.value;
               onChange({ ...schema, [key]: value });
             }}
-            className={multi ? "h-24" : ""}
+            className={multi ? "h-28" : ""}
           >
             {!multi && <option value="">Select a column...</option>}
             {headers.map((h) => (
@@ -64,8 +77,8 @@ const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
             ))}
           </Select>
           {multi && (
-            <p className="text-xs text-gray-500">
-              Hold Ctrl/Cmd to select multiple.
+            <p className="text-xs text-gray-500 mt-2 italic">
+              Hold Ctrl/Cmd to select multiple columns
             </p>
           )}
         </div>
@@ -75,7 +88,6 @@ const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
 );
 
 function RecommenderPanel() {
-  // --- Form State ---
   const [projectName, setProjectName] = useState("");
   const [contentFile, setContentFile] = useState(null);
   const [interactionFile, setInteractionFile] = useState(null);
@@ -94,13 +106,11 @@ function RecommenderPanel() {
     rating: "",
   });
 
-  // --- App Status State ---
   const [projects, setProjects] = useState([]);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // --- Recommendation State ---
   const [itemsList, setItemsList] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [selectedItemTitle, setSelectedItemTitle] = useState("");
@@ -110,7 +120,6 @@ function RecommenderPanel() {
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
-  // --- File Header Parsing Effects ---
   const parseHeaders = (file, setHeaders) => {
     if (file) {
       Papa.parse(file, {
@@ -129,7 +138,6 @@ function RecommenderPanel() {
     [interactionFile]
   );
 
-  // --- Data Fetching Effects ---
   const fetchProjects = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/projects/`);
@@ -144,7 +152,6 @@ function RecommenderPanel() {
     fetchProjects();
   }, [fetchProjects]);
 
-  // --- Status Polling Effect ---
   useEffect(() => {
     if (currentStatus === "processing" && selectedProjectId) {
       const interval = setInterval(
@@ -155,7 +162,6 @@ function RecommenderPanel() {
     }
   }, [currentStatus, selectedProjectId]);
 
-  // --- API Callbacks ---
   const checkProjectStatus = async (projectId) => {
     try {
       const response = await fetch(`${API_URL}/project/${projectId}/status`);
@@ -276,7 +282,6 @@ function RecommenderPanel() {
     }
 
     try {
-      // Add n parameter for number of recommendations
       params.append("n", "10");
       const url = `${API_URL}/project/${selectedProjectId}/recommendations?${params.toString()}`;
       console.log("Fetching recommendations:", url);
@@ -302,252 +307,313 @@ function RecommenderPanel() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 min-h-screen">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN: Create & Manage */}
         <div className="lg:col-span-2 space-y-8">
-          <Card>
-            <h2 className="text-2xl font-bold mb-4">
-              Create New Recommender Project
-            </h2>
-            <form onSubmit={handleCreateProject} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Project Name
-                </label>
-                <Input
-                  type="text"
-                  placeholder="e.g., My Movie Recommender"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Content File Upload */}
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-                  <h3 className="font-semibold text-lg text-gray-800">
-                    1. Content Data (Optional)
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Item details (e.g., movies.csv)
-                  </p>
-                  <Input
-                    type="file"
-                    accept=".csv"
-                    className="mt-4"
-                    onChange={(e) =>
-                      setContentFile(e.target.files ? e.target.files[0] : null)
-                    }
-                  />
-                  {contentFile && (
-                    <SchemaMapper
-                      title="Map Content Schema"
-                      headers={contentHeaders}
-                      schema={contentSchema}
-                      onChange={setContentSchema}
-                      schemaKeys={[
-                        { key: "item_id", label: "Item ID Column" },
-                        { key: "item_title", label: "Item Title Column" },
-                        {
-                          key: "feature_cols",
-                          label: "Feature Columns (for content)",
-                          multi: true,
-                        },
-                      ]}
-                    />
-                  )}
+          <Card gradient>
+            <div className="p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-900 via-cyan-800 to-cyan-900 rounded-4xl flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-white" />
                 </div>
-
-                {/* Interaction File Upload */}
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-                  <h3 className="font-semibold text-lg text-gray-800">
-                    2. Interaction Data (Optional)
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    User ratings (e.g., ratings.csv)
-                  </p>
-                  <Input
-                    type="file"
-                    accept=".csv"
-                    className="mt-4"
-                    onChange={(e) =>
-                      setInteractionFile(
-                        e.target.files ? e.target.files[0] : null
-                      )
-                    }
-                  />
-                  {interactionFile && (
-                    <SchemaMapper
-                      title="Map Interaction Schema"
-                      headers={interactionHeaders}
-                      schema={interactionSchema}
-                      onChange={setInteractionSchema}
-                      schemaKeys={[
-                        { key: "user_id", label: "User ID Column" },
-                        { key: "item_id", label: "Item ID Column" },
-                        { key: "rating", label: "Rating Column" },
-                      ]}
-                    />
-                  )}
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Create New Project
+                  </h2>
+                  <p className="text-sm text-gray-600">Build your AI-powered recommendation engine</p>
                 </div>
               </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Project Name
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g., My Movie Recommender"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                  />
+                </div>
 
-              <Button
-                type="submit"
-                disabled={
-                  currentStatus === "uploading" ||
-                  currentStatus === "processing"
-                }
-              >
-                {currentStatus === "uploading" && "Uploading..."}
-                {currentStatus === "processing" && "Processing..."}
-                {currentStatus !== "uploading" &&
-                  currentStatus !== "processing" &&
-                  "Create Project & Train Model"}
-              </Button>
-            </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-6 border-2 border-dashed border-red-900 rounded-2xl bg-gradient-to-br from-blue-50 to-white hover:border-cyan-400 transition-all duration-200">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Upload className="w-5 h-5 text-rose-950" />
+                      <h3 className="font-bold text-lg text-gray-800">
+                        Content Data
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Upload item details (e.g., movies.csv)
+                    </p>
+                    <Input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) =>
+                        setContentFile(e.target.files ? e.target.files[0] : null)
+                      }
+                    />
+                    {contentFile && (
+                      <SchemaMapper
+                        title="Map Content Schema"
+                        headers={contentHeaders}
+                        schema={contentSchema}
+                        onChange={setContentSchema}
+                        schemaKeys={[
+                          { key: "item_id", label: "Item ID Column" },
+                          { key: "item_title", label: "Item Title Column" },
+                          {
+                            key: "feature_cols",
+                            label: "Feature Columns",
+                            multi: true,
+                          },
+                        ]}
+                      />
+                    )}
+                  </div>
+
+                  <div className="p-6 border-2 border-dashed border-red-900 rounded-2xl bg-gradient-to-br from-indigo-50 to-white hover:border-cyan-400 transition-all duration-200">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <TrendingUp className="w-5 h-5 text-rose-900" />
+                      <h3 className="font-bold text-lg text-gray-800">
+                        Interaction Data
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Upload user ratings (e.g., ratings.csv)
+                    </p>
+                    <Input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) =>
+                        setInteractionFile(
+                          e.target.files ? e.target.files[0] : null
+                        )
+                      }
+                    />
+                    {interactionFile && (
+                      <SchemaMapper
+                        title="Map Interaction Schema"
+                        headers={interactionHeaders}
+                        schema={interactionSchema}
+                        onChange={setInteractionSchema}
+                        schemaKeys={[
+                          { key: "user_id", label: "User ID Column" },
+                          { key: "item_id", label: "Item ID Column" },
+                          { key: "rating", label: "Rating Column" },
+                        ]}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleCreateProject}
+                  disabled={
+                    currentStatus === "uploading" ||
+                    currentStatus === "processing"
+                  }
+                  icon={currentStatus === "uploading" || currentStatus === "processing" ? Loader2 : Sparkles}
+                >
+                  {currentStatus === "uploading" && "Uploading Files..."}
+                  {currentStatus === "processing" && "Training Model..."}
+                  {currentStatus !== "uploading" &&
+                    currentStatus !== "processing" &&
+                    "Create Project & Train Model"}
+                </Button>
+              </div>
+            </div>
           </Card>
 
-          {/* Recommendations Card */}
           <Card>
-            <h2 className="text-2xl font-bold mb-4">Get Recommendations</h2>
-            {!selectedProjectId ? (
-              <p className="text-gray-500">
-                Please select a "Ready" project from the list to begin.
-              </p>
-            ) : currentStatus === "processing" ? (
-              <div className="text-center p-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 font-semibold text-blue-600">
-                  Processing project...
-                </p>
+            <div className="p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-rose-900 to-cyan-800 rounded-4xl flex items-center justify-center">
+                  <Play className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Get Recommendations
+                  </h2>
+                  <p className="text-sm text-gray-600">Generate personalized suggestions</p>
+                </div>
               </div>
-            ) : errorMessage ? (
-              <div className="p-4 bg-red-100 text-red-700 rounded-md">
-                {errorMessage}
-              </div>
-            ) : currentStatus === "ready" && selectedProject ? (
-              <form onSubmit={handleGetRecommendations} className="space-y-4">
-                <h3 className="text-lg font-semibold">
-                  Project:{" "}
-                  <span className="text-blue-600">
-                    {selectedProject.project_name}
-                  </span>
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Model Type:{" "}
-                  <span className="font-medium uppercase text-gray-800">
-                    {selectedProject.model_type}
-                  </span>
-                </p>
-
-                {(selectedProject.model_type === "content" ||
-                  selectedProject.model_type === "hybrid") && (
+              
+              {!selectedProjectId ? (
+                <div className="text-center p-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">
+                    Please select a "Ready" project to begin
+                  </p>
+                </div>
+              ) : currentStatus === "processing" ? (
+                <div className="text-center p-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+                  <Loader2 className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-spin" />
+                  <p className="font-semibold text-blue-600 text-lg">
+                    Processing your project...
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2">This may take a few moments</p>
+                </div>
+              ) : errorMessage ? (
+                <div className="p-6 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl flex items-start space-x-3">
+                  <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Select Item
-                    </label>
-                    <Select
-                      value={selectedItemTitle}
-                      onChange={(e) => setSelectedItemTitle(e.target.value)}
-                    >
-                      {itemsList.map((item) => (
-                        <option key={item.id} value={item.title}>
-                          {item.title}
-                        </option>
-                      ))}
-                    </Select>
+                    <p className="font-semibold">Error</p>
+                    <p className="text-sm mt-1">{errorMessage}</p>
                   </div>
-                )}
-                {(selectedProject.model_type === "collaborative" ||
-                  selectedProject.model_type === "hybrid") && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Select User
-                    </label>
-                    <Select
-                      value={selectedUserId}
-                      onChange={(e) => setSelectedUserId(e.target.value)}
-                    >
-                      {usersList.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.id}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                )}
-
-                <Button type="submit" disabled={isLoadingRecs}>
-                  {isLoadingRecs
-                    ? "Getting Recommendations..."
-                    : "Get Recommendations"}
-                </Button>
-
-                {errorMessage && (
-                  <div className="mt-4 p-4 bg-red-100 border border-red-400 rounded-md">
-                    <h3 className="text-lg font-semibold text-red-800">
-                      Error:
+                </div>
+              ) : currentStatus === "ready" && selectedProject ? (
+                <div className="space-y-6">
+                  <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      {selectedProject.project_name}
                     </h3>
-                    <p className="text-red-700">{errorMessage}</p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Model Type:</span>
+                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                        selectedProject.model_type === "content"
+                          ? "bg-green-100 text-green-800"
+                          : selectedProject.model_type === "collaborative"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-purple-100 text-purple-800"
+                      }`}>
+                        {selectedProject.model_type?.toUpperCase()}
+                      </span>
+                    </div>
                   </div>
-                )}
-                {recommendations && (
-                  <div className="pt-4">
-                    <h3 className="text-lg font-semibold">Results:</h3>
-                    <ul className="mt-2 list-disc list-inside space-y-1">
-                      {recommendations.map((rec, index) => {
-                        const titleKey = Object.keys(rec).find(
-                          (k) =>
-                            k.toLowerCase().includes("title") ||
-                            k.toLowerCase().includes("name")
-                        );
-                        const idKey = Object.keys(rec).find((k) =>
-                          k.toLowerCase().includes("id")
-                        );
-                        return (
-                          <li key={index} className="text-gray-700">
-                            {titleKey ? rec[titleKey] : `ID: ${rec[idKey]}`}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-              </form>
-            ) : null}
+
+                  {(selectedProject.model_type === "content" ||
+                    selectedProject.model_type === "hybrid") && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Item
+                      </label>
+                      <Select
+                        value={selectedItemTitle}
+                        onChange={(e) => setSelectedItemTitle(e.target.value)}
+                      >
+                        {itemsList.map((item) => (
+                          <option key={item.id} value={item.title}>
+                            {item.title}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  )}
+                  
+                  {(selectedProject.model_type === "collaborative" ||
+                    selectedProject.model_type === "hybrid") && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select User
+                      </label>
+                      <Select
+                        value={selectedUserId}
+                        onChange={(e) => setSelectedUserId(e.target.value)}
+                      >
+                        {usersList.map((user) => (
+                          <option key={user.id} value={user.id}>
+                            User {user.id}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleGetRecommendations}
+                    disabled={isLoadingRecs}
+                    icon={isLoadingRecs ? Loader2 : Play}
+                  >
+                    {isLoadingRecs
+                      ? "Generating..."
+                      : "Get Recommendations"}
+                  </Button>
+
+                  {recommendations && (
+                    <div className="pt-4">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Top Recommendations</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {recommendations.map((rec, index) => {
+                          const titleKey = Object.keys(rec).find(
+                            (k) =>
+                              k.toLowerCase().includes("title") ||
+                              k.toLowerCase().includes("name")
+                          );
+                          const idKey = Object.keys(rec).find((k) =>
+                            k.toLowerCase().includes("id")
+                          );
+                          return (
+                            <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-200">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-cyan-600 to-indigo-200 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                  {index + 1}
+                                </div>
+                                <p className="text-gray-900 font-medium">
+                                  {titleKey ? rec[titleKey] : `ID: ${rec[idKey]}`}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
           </Card>
         </div>
 
-        {/* RIGHT COLUMN: Project List */}
-        <Card className="lg:col-span-1 h-full">
-          <h2 className="text-2xl font-bold mb-4">My Projects</h2>
-          <ul className="space-y-3">
-            {projects.length === 0 && (
-              <p className="text-gray-500">No projects created yet.</p>
-            )}
-            {projects.map((p) => (
-              <li
-                key={p.id}
-                onClick={() => handleSelectProject(p.id)}
-                className={`p-4 border rounded-md cursor-pointer ${
-                  selectedProjectId === p.id
-                    ? "bg-blue-50 border-blue-400 shadow-sm"
-                    : "hover:bg-gray-50 border-gray-200"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                    ID: {p.id}
-                  </span>
+        <Card className="lg:col-span-1 h-fit sticky top-24">
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Projects</h2>
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+              {projects.length === 0 && (
+                <div className="text-center p-8 bg-gray-50 rounded-xl">
+                  <p className="text-gray-500">No projects yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Create one to get started</p>
                 </div>
-                <div className="font-semibold text-gray-800">
-                  {p.project_name}
-                </div>
-                <div className="flex justify-between items-center mt-1">
+              )}
+              {projects.map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => handleSelectProject(p.id)}
+                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                    selectedProjectId === p.id
+                      ? "bg-gradient-to-br from-blue-50 to-indigo-50 border-rose-800 shadow-md"
+                      : "hover:bg-gray-50 border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded-md">
+                      #{p.id}
+                    </span>
+                    <span
+                      className={`flex items-center space-x-1 text-xs font-bold ${
+                        p.status === "ready"
+                          ? "text-green-600"
+                          : p.status === "error"
+                          ? "text-red-600"
+                          : "text-yellow-600"
+                      }`}
+                    >
+                      {p.status === "ready" && <CheckCircle className="w-3 h-3" />}
+                      {p.status === "processing" && <Loader2 className="w-3 h-3 animate-spin" />}
+                      {p.status === "error" && <AlertCircle className="w-3 h-3" />}
+                      <span className="uppercase">{p.status}</span>
+                    </span>
+                  </div>
+                  <div className="font-bold text-gray-900 mb-2">
+                    {p.project_name}
+                  </div>
                   <span
-                    className={`text-xs font-medium uppercase px-2 py-0.5 rounded-full ${
+                    className={`inline-block text-xs font-bold uppercase px-3 py-1 rounded-full ${
                       p.model_type === "content"
                         ? "bg-green-100 text-green-800"
                         : p.model_type === "collaborative"
@@ -559,21 +625,10 @@ function RecommenderPanel() {
                   >
                     {p.model_type || "N/A"}
                   </span>
-                  <span
-                    className={`text-sm font-medium ${
-                      p.status === "ready"
-                        ? "text-green-600"
-                        : p.status === "error"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
                 </div>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </div>
         </Card>
       </div>
     </div>
