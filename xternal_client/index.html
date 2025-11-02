@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎵 MusicRec Test Client</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .results {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      min-height: 100px;
+    }
+
+    .results h3 {
+      margin-bottom: 15px;
+    }
+
+    .results ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .results li {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f9fafb;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .results a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .results a:hover {
+      text-decoration: underline;
+    }
+
+    small {
+      display: block;
+      margin-top: 8px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    small a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    small a:hover {
+      text-decoration: underline;
+    }
+
+    .error {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .success {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .loading {
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .debug {
+      background: #f3f4f6;
+      border-left: 4px solid #667eea;
+      padding: 10px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .debug-section {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .debug-section h4 {
+      margin-bottom: 10px;
+      color: #374151;
+    }
+
+    .debug-section pre {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎧 MusicRec Test Client</h1>
+
+    <div class="card">
+      <label>API Key:</label>
+      <input type="text" id="apiKey" placeholder="Paste your API key here" />
+
+      <label>Item / Song Title:</label>
+      <input type="text" id="itemTitle" placeholder="e.g., Fader" />
+
+      <label>Project ID:</label>
+      <input type="number" id="projectId" placeholder="Enter project ID (e.g., 1, 2, 3)" />
+
+      <small>
+        💡 To find your Project ID: Go to <a href="http://localhost:5173" target="_blank">Recommender Studio</a> → 
+        Check the "My Projects" list (use an ID with status "ready").
+      </small>
+
+      <button id="getRecs">Get Recommendations</button>
+      
+      <div class="debug-section" style="margin-top: 20px;">
+        <h4>🔍 Debug Console</h4>
+        <div id="debugConsole" style="font-family: monospace; font-size: 11px; max-height: 200px; overflow-y: auto; background: white; padding: 10px; border-radius: 4px; border: 1px solid #e5e7eb;"></div>
+      </div>
+    </div>
+
+    <div id="output" class="results" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Debug logging helper
+    const debugLog = (message, data = null) => {
+      const timestamp = new Date().toLocaleTimeString();
+      const debugConsole = document.getElementById('debugConsole');
+      const logEntry = document.createElement('div');
+      logEntry.style.marginBottom = '5px';
+      logEntry.style.borderBottom = '1px solid #f3f4f6';
+      logEntry.style.paddingBottom = '5px';
+      
+      let logText = `[${timestamp}] ${message}`;
+      if (data) {
+        logText += '\n' + JSON.stringify(data, null, 2);
+      }
+      
+      logEntry.textContent = logText;
+      debugConsole.appendChild(logEntry);
+      debugConsole.scrollTop = debugConsole.scrollHeight;
+      
+      // Also log to console
+      console.log(message, data || '');
+    };
+
+    // Wait for DOM to load
+    document.addEventListener("DOMContentLoaded", () => {
+      debugLog("✅ DOM loaded - Client initialized");
+      
+      const getRecsBtn = document.getElementById("getRecs");
+      const output = document.getElementById("output");
+      const apiKeyInput = document.getElementById("apiKey");
+      const itemTitleInput = document.getElementById("itemTitle");
+      const projectIdInput = document.getElementById("projectId");
+      
+      if (!getRecsBtn || !output || !apiKeyInput || !itemTitleInput || !projectIdInput) {
+        debugLog("❌ Missing DOM elements!");
+        return;
+      }
+
+      debugLog("✅ All DOM elements found");
+
+      getRecsBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        debugLog("🔘 Button clicked!");
+        
+        try {
+          // Get values
+          const apiKey = apiKeyInput.value.trim();
+          const itemTitle = itemTitleInput.value.trim();
+          const projectId = projectIdInput.value.trim();
+
+          debugLog("📋 Form values collected", { 
+            apiKey: apiKey ? `${apiKey.substring(0, 10)}...` : '(empty)',
+            itemTitle: itemTitle || '(empty)', 
+            projectId: projectId || '(empty)'
+          });
+
+          // Validation
+          if (!apiKey || !itemTitle || !projectId) {
+            output.style.display = 'block';
+            output.innerHTML = `<p class="error">⚠️ Please fill in all fields.</p>`;
+            debugLog("⚠️ Validation failed - missing fields");
+            return;
+          }
+
+          debugLog("✅ Validation passed");
+
+          // Show loading state
+          output.style.display = 'block';
+          output.innerHTML = '<p class="loading">⏳ Fetching recommendations...</p>';
+          getRecsBtn.disabled = true;
+          getRecsBtn.textContent = 'Loading...';
+
+          const requestBody = {
+            project_id: parseInt(projectId),
+            item_title: itemTitle
+          };
+
+          debugLog("📤 Preparing request", requestBody);
+
+          const url = "http://localhost:3001/api/recommend";
+          debugLog("📡 Making POST request", { url, method: 'POST' });
+
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": apiKey,
+            },
+            body: JSON.stringify(requestBody),
+          });
+
+          debugLog("📥 Response received", { 
+            status: res.status,
+            statusText: res.statusText,
+            ok: res.ok
+          });
+
+          // Parse response
+          const text = await res.text();
+          debugLog("📥 Raw response body", { 
+            length: text.length,
+            preview: text.substring(0, 200)
+          });
+
+          let data;
+          try {
+            data = JSON.parse(text);
+            debugLog("✅ JSON parsed successfully", data);
+          } catch (parseError) {
+            debugLog("❌ JSON parse error", { error: parseError.message });
+            throw new Error(`Invalid JSON response: ${text.substring(0, 100)}`);
+          }
+
+          if (!res.ok) {
+            debugLog("❌ Server returned error", { status: res.status, data });
+            const errorMsg = data.details || data.error || `Server returned ${res.status}`;
+            throw new Error(errorMsg);
+          }
+
+          const recs = data.recommendations || [];
+          debugLog("📊 Processing recommendations", { 
+            count: recs.length,
+            modelType: data.model_type,
+            firstRec: recs[0]
+          });
+
+          if (!recs.length) {
+            output.innerHTML = `<p class="error">❌ No recommendations found for "${itemTitle}".</p>`;
+            debugLog("⚠️ No recommendations returned");
+            return;
+          }
+
+          // Build results HTML
+          const listHTML = recs
+            .map((rec, idx) => {
+              const title = rec["Track Name"] || rec.title || rec.name || rec.id || "Untitled";
+              const uri = rec["Track URI"];
+              const spotifyLink = uri 
+                ? `<a href="https://open.spotify.com/track/${uri.split(":").pop()}" target="_blank">🎧 Listen</a>`
+                : "";
+              return `<li><span>${idx + 1}. ${title}</span>${spotifyLink}</li>`;
+            })
+            .join("");
+
+          debugLog("✅ Rendering results", { itemCount: recs.length });
+
+          output.innerHTML = `
+            <h3 class="success">✅ Recommendations for "<b>${itemTitle}</b>":</h3>
+            <ul>${listHTML}</ul>
+            <p style="margin-top:15px; color:#6b7280;">Model type: <b>${data.model_type || 'N/A'}</b></p>
+            <div class="debug-section">
+              <h4>Full Response Data:</h4>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>
+          `;
+
+          debugLog("🎉 Success! Displayed recommendations");
+
+        } catch (err) {
+          debugLog("🚨 Error occurred", { 
+            message: err.message,
+            stack: err.stack
+          });
+          
+          output.style.display = 'block';
+          output.innerHTML = `
+            <p class="error">🚨 Error: ${err.message}</p>
+            <div class="debug">
+              <strong>Error Details:</strong><br>
+              ${err.stack || err.message}
+            </div>
+          `;
+        } finally {
+          getRecsBtn.disabled = false;
+          getRecsBtn.textContent = 'Get Recommendations';
+          debugLog("🔄 Request completed");
+        }
+      });
+
+      debugLog("✅ Event listener attached - Ready to go!");
+    });
+  </script>
+</body>
+</html>

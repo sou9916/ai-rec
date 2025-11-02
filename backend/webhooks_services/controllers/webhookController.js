@@ -1,39 +1,35 @@
-import sqlite3 from "sqlite3";
 import axios from "axios";
+import db from "../db/webhookdb.js";
 
-const db = new sqlite3.Database("./db/webhooks.db");
+export const registerWebhook = async (req, res) => {
+  try {
+    const { app_name, webhook_url } = req.body;
+    if (!app_name || !webhook_url)
+      return res.status(400).json({ error: "Missing app_name or webhook_url" });
 
-// Create table on startup
-db.run(`
-  CREATE TABLE IF NOT EXISTS webhooks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    app_name TEXT,
-    webhook_url TEXT
-  )
-`);
-
-export const registerWebhook = (req, res) => {
-  const { app_name, webhook_url } = req.body;
-  if (!app_name || !webhook_url)
-    return res.status(400).json({ error: "Missing app_name or webhook_url" });
-
-  db.run("INSERT INTO webhooks (app_name, webhook_url) VALUES (?, ?)", [app_name, webhook_url], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: this.lastID, message: "Webhook registered successfully" });
-  });
+    // Use the centralized apps table
+    const result = await db.run("INSERT INTO apps (app_name, webhook_url) VALUES (?, ?)", [app_name, webhook_url]);
+    res.json({ id: result.lastID, message: "Webhook registered successfully" });
+  } catch (err) {
+    console.error("registerWebhook error:", err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
-export const listWebhooks = (req, res) => {
-  db.all("SELECT * FROM webhooks", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+export const listWebhooks = async (req, res) => {
+  try {
+    const rows = await db.all("SELECT * FROM apps");
     res.json(rows);
-  });
+  } catch (err) {
+    console.error("listWebhooks error:", err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const triggerWebhooks = async (req, res) => {
-  const { event, data } = req.body;
-  db.all("SELECT webhook_url FROM webhooks", [], async (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const { event, data } = req.body;
+    const rows = await db.all("SELECT webhook_url FROM apps");
 
     const results = [];
     for (const { webhook_url } of rows) {
@@ -45,5 +41,8 @@ export const triggerWebhooks = async (req, res) => {
       }
     }
     res.json({ message: "Webhooks triggered", results });
-  });
+  } catch (err) {
+    console.error("triggerWebhooks error:", err);
+    res.status(500).json({ error: err.message });
+  }
 };

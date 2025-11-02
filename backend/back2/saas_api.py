@@ -17,24 +17,42 @@ from typing import List, Optional, Dict
 import models
 import schemas
 import database
-
-
+import httpx
 # --- Import your classes ---
 from Content import ContentBasedRecommender
 from Collaborative import CollaborativeFilteringRecommender
 # --- Import the MLflow wrapper ---
 from dynamic_recommender import MLflowRecommenderWrapper
+from datetime import datetime
 
-import requests
-def notify_webhooks(event, data):
-   
-        url = "http://localhost:5000/api/webhooks/trigger"  # your Node.js webhook microservice
-        try:
-            response = requests.post(url, json={"event": event, "data": data}, timeout=5)
-            print(f"Webhook triggered: {event}, status={response.status_code}")
-        except Exception as e:
-            print(f"⚠️ Webhook trigger failed: {e}")
 
+
+async def notify_webhooks(event_type: str, payload: dict):
+    """Send event payload to all registered external apps via the Node webhook service."""
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get("http://localhost:3001/api/apps")
+            if res.status_code != 200:
+                print("⚠️ Could not fetch registered apps from webhook service")
+                return
+            apps = res.json()
+
+            for app in apps:
+                try:
+                    await client.post(
+                        app["webhook_url"],
+                        json={
+                            "event": event_type,
+                            "data": payload,
+                            "api_key": app["api_key"],
+                        },
+                        timeout=10.0,
+                    )
+                    print(f"✅ Notified {app['app_name']} at {app['webhook_url']}")
+                except Exception as e:
+                    print(f"❌ Failed to send to {app['app_name']}: {e}")
+    except Exception as e:
+        print(f"❌ notify_webhooks failed: {e}")
 # --- App Setup & MLflow Configuration (Unchanged) ---
 os.makedirs("user_uploads", exist_ok=True)
 os.makedirs("mlflow_artifacts", exist_ok=True)
@@ -79,7 +97,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000","http://localhost:8000","http://localhost:5000","http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000","http://localhost:8000","http://localhost:3001","http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -117,22 +135,22 @@ async def save_file_and_schema(
         raise HTTPException(status_code=400, detail=f"Invalid schema JSON for {file_type} file.")
     
     for app_key, user_col in schema_map.items():
-        if isinstance(user_col, list): 
+        if isinstance(user_col, list):
             for col in user_col:
                 db_schema = models.SchemaMapping(
-                    app_schema_key='feature_col', 
+                    app_schema_key='feature_col',
                     user_csv_column=col,
-                    file_id=db_file.id
+                    file_id=db_file.id,
                 )
                 db.add(db_schema)
         else:
-             db_schema = models.SchemaMapping(
+            db_schema = models.SchemaMapping(
                 app_schema_key=app_key,
                 user_csv_column=user_col,
-                file_id=db_file.id
+                file_id=db_file.id,
             )
-             db.add(db_schema)
-            
+            db.add(db_schema)
+
     db.commit()
     return db_file
 
@@ -271,12 +289,18 @@ async def process_project(project_id: int, db: Session):
         db_project.status = models.ProjectStatus.READY
         db.commit()
         print(f"[Task {project_id}]: Processing complete.")
-        notify_webhooks("model_trained", {
-    "project_id": project_id,
-    "project_name": db_project.project_name,
-    "model_type": db_project.model_type.value,
-    "status": db_project.status.value
-})
+
+        # --- Send webhook notification ---
+        try:
+            await notify_webhooks("model_ready", {
+                "project_id": db_project.id,
+                "project_name": db_project.project_name,
+                "model_type": db_project.model_type,
+                "timestamp": str(datetime.utcnow()),
+            })
+        except Exception as notify_err:
+            print(f"[Task {project_id}]: Failed to notify webhooks - {notify_err}")
+
     except Exception as e:
         print(f"[Task {project_id}]: ERROR processing project. {e}")
         if db_project:
@@ -427,22 +451,25 @@ def get_recommendations(
     try:
         model_uri = f"models:/{db_project.mlflow_model_name}/{db_project.mlflow_model_version}"
         print(f"Loading model from URI: {model_uri}")
+        print(f"MLflow tracking URI: {mlflow.get_tracking_uri()}")
+        print(f"Project details: {db_project.project_name} (ID: {db_project.id})")
+        print(f"Model type: {model_type}, User ID: {user_id}, Item title: {item_title}")
+        
         model = mlflow.pyfunc.load_model(model_uri)
+        print("Model loaded successfully")
         
         model_input = pd.DataFrame([{"user_id": user_id, "item_title": item_title, "n": n}])
+        print(f"Model input: {model_input.to_dict('records')}")
         
         result_json = model.predict(model_input)[0]
-        result = json.loads(result_json)
+        print(f"Raw prediction result: {result_json}")
         
-        if result["error"]:
+        result = json.loads(result_json)
+        print(f"Parsed result: {result}")
+        
+        if result.get("error"):
             raise ValueError(result["error"])
-        # 🔔 Notify external apps when recommendations are generated
-        notify_webhooks("recommendations_generated", {
-        "project_id": project_id,
-        "user_id": user_id,
-        "item_title": item_title,
-        "recommendations": result["recommendations"]
-        })    
+            
         return schemas.RecommendationResponse(
             input_item_title=item_title,
             input_user_id=user_id,
@@ -455,5 +482,3 @@ def get_recommendations(
     except Exception as e:
         print(f"Error loading model or predicting: {e}")
         raise HTTPException(status_code=500, detail=f"Error generating recommendations: {e}")
-    
-    

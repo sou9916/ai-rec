@@ -1,26 +1,42 @@
 import React, { useState } from "react";
 import { API_WEBHOOK } from "../api";
 
-export default function RegisterWebhook() {
+export default function RegisterWebhook({ onAppRegistered }) {
   const [appName, setAppName] = useState("");
   const [url, setUrl] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setApiKey("");
+    setLoading(true);
+
     try {
-      const res = await fetch(`${API_WEBHOOK}/api/webhooks/register`, {
+      const res = await fetch(`${API_WEBHOOK}/api/apps/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ app_name: appName, webhook_url: url }),
       });
-      if (!res.ok) throw new Error("Failed to register webhook");
-      setMessage("✅ App registered successfully!");
-      setAppName("");
-      setUrl("");
+
+      if (!res.ok) throw new Error("Failed to register app");
+      const data = await res.json();
+
+      if (data.api_key) {
+        setApiKey(data.api_key);
+        setMessage("✅ App registered successfully!");
+        if (onAppRegistered) onAppRegistered();
+      } else {
+        setMessage("⚠️ Registered, but API key not returned.");
+      }
     } catch (err) {
       setMessage("❌ " + err.message);
+    } finally {
+      setLoading(false);
+      setAppName("");
+      setUrl("");
     }
   };
 
@@ -46,12 +62,21 @@ export default function RegisterWebhook() {
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700"
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700 disabled:opacity-50"
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
       </form>
+
       {message && <p className="mt-3 text-sm text-gray-700">{message}</p>}
+
+      {apiKey && (
+        <div className="mt-3 p-3 bg-gray-100 rounded-md border text-sm">
+          <p className="font-semibold">Your API Key:</p>
+          <code className="text-blue-700 break-all">{apiKey}</code>
+        </div>
+      )}
     </div>
   );
 }
