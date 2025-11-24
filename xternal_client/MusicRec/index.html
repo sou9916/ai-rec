@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MusicRec</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
 </head>
 <body>
   <aside class="sidebar">
     <div class="brand">
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="14" fill="#1ed760"/>
+        <circle cx="14" cy="14" r="14" fill="#00cccc"/>
         <path d="M10 9l8 5-8 5V9z" fill="#000"/>
       </svg>
       <h1>MusicRec</h1>
@@ -60,95 +63,112 @@
         <p>Tap any song to discover similar music</p>
       </div>
 
-      <div class="grid">
-        <article class="card" data-track="Fader">
-          <div class="card-img">
-            <div class="placeholder">♪</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>Fader</h3>
-          <p>The Temper Trap</p>
-        </article>
-
-        <article class="card" data-track="Fix You">
-          <div class="card-img">
-            <div class="placeholder">♫</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>Fix You</h3>
-          <p>Coldplay</p>
-        </article>
-
-        <article class="card" data-track="Sherry">
-          <div class="card-img">
-            <div class="placeholder">♬</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>Sherry</h3>
-          <p>Frankie Valli & The Four Seasons</p>
-        </article>
-
-        <article class="card" data-track="Party">
-          <div class="card-img">
-            <div class="placeholder">♭</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>Party</h3>
-          <p>Christine Anu</p>
-        </article>
-
-        <article class="card" data-track="Teach Me How to Fly">
-          <div class="card-img">
-            <div class="placeholder">♮</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>Teach Me How to Fly</h3>
-          <p>Jeff St John, The Copperwine</p>
-        </article>
-
-        <article class="card" data-track="The Edge of Heaven">
-          <div class="card-img">
-            <div class="placeholder">♯</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>The Edge of Heaven</h3>
-          <p>Wham!</p>
-        </article>
-
-        <article class="card" data-track="Into The Dark">
-          <div class="card-img">
-            <div class="placeholder">𝄞</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>Into The Dark</h3>
-          <p>Ben Lee</p>
-        </article>
-
-        <article class="card" data-track="The Way I Want To Touch You">
-          <div class="card-img">
-            <div class="placeholder">𝄢</div>
-            <button class="play">
-              <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
-            </button>
-          </div>
-          <h3>The Way I Want To Touch You</h3>
-          <p>Captain & Tennille</p>
-        </article>
+     <div class="grid">
+  <article class="card" data-track="Fader">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1578579653953-64e944c3741b?q=80&w=686&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Fader">
       </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>Fader</h3>
+    <p>The Temper Trap</p>
+  </article>
+
+  <article class="card" data-track="Fix You">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1690477554481-d8f79a4da0d0?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Fix You">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>Fix You</h3>
+    <p>Coldplay</p>
+  </article>
+
+  <article class="card" data-track="Sherry">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1664607871571-dd32817ea8ca?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Sherry">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>Sherry</h3>
+    <p>Frankie Valli & The Four Seasons</p>
+  </article>
+
+  <article class="card" data-track="Party">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1660150509350-ff505601d094?q=80&w=1145&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Party">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>Party</h3>
+    <p>Christine Anu</p>
+  </article>
+
+  <article class="card" data-track="Teach Me How to Fly">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1602559399679-891a4c846acf?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Teach Me How to Fly">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>Teach Me How to Fly</h3>
+    <p>Jeff St John, The Copperwine</p>
+  </article>
+
+  <article class="card" data-track="The Edge of Heaven">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?auto=format&fit=crop&w=800&q=80" alt="The Edge of Heaven">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>The Edge of Heaven</h3>
+    <p>Wham!</p>
+  </article>
+
+  <article class="card" data-track="Into The Dark">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://images.unsplash.com/photo-1595422656857-ced3a4a0ce25?q=80&w=708&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Into The Dark">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>Into The Dark</h3>
+    <p>Ben Lee</p>
+  </article>
+
+  <article class="card" data-track="The Way I Want To Touch You">
+    <div class="card-img">
+      <div class="placeholder">
+        <img src="https://plus.unsplash.com/premium_photo-1661286678499-211423a9ff5e?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="The Way I Want To Touch You">
+      </div>
+      <button class="play">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path fill="currentColor" d="M10 8l12 6-12 6V8z"/></svg>
+      </button>
+    </div>
+    <h3>The Way I Want To Touch You</h3>
+    <p>Captain & Tennille</p>
+  </article>
+</div>
+
     </section>
 
     <section id="loader" class="section hide">

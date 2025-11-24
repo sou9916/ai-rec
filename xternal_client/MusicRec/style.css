@@ -1,16 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family:"Lato", sans-serif ;
   background: #0d0d0d;
   color: #fff;
   display: flex;
   height: 100vh;
   overflow: hidden;
+  letter-spacing: 0.2px;
 }
 
 .sidebar {
@@ -33,7 +37,7 @@ body {
 .brand h1 {
   font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: 0.5px;
 }
 
 nav {
@@ -89,13 +93,13 @@ nav a.active {
 }
 
 .online {
-  color: #1ed760;
+  color: lime;
   font-weight: 600;
 }
 
 .main {
   flex: 1;
-  background: linear-gradient(to bottom, #1f4068 0%, #0d0d0d 280px);
+  background: linear-gradient(to bottom,  #0d4949 0%, #0d0d0d 280px);
   overflow-y: auto;
   position: relative;
 }
@@ -160,7 +164,7 @@ nav a.active {
   font-size: 42px;
   font-weight: 900;
   margin-bottom: 6px;
-  letter-spacing: -1px;
+  letter-spacing: 0.5px;
 }
 
 .hero p {
@@ -185,7 +189,7 @@ nav a.active {
 }
 
 .card:hover {
-  background: #202020;
+  background: #008080;
 }
 
 .card:hover .play {
@@ -202,7 +206,13 @@ nav a.active {
   position: relative;
   overflow: hidden;
 }
-
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* makes the image fill the box */
+  object-position: center; /* centers the image */
+  display: block;
+}
 .placeholder {
   width: 100%;
   height: 100%;
@@ -219,7 +229,7 @@ nav a.active {
   right: 8px;
   width: 44px;
   height: 44px;
-  background: #1ed760;
+  background: #119797;
   border: none;
   border-radius: 50%;
   color: #000;
@@ -235,7 +245,7 @@ nav a.active {
 
 .play:hover {
   transform: scale(1.06);
-  background: #1fdf64;
+  background: #00cccc;
 }
 
 .card h3 {
@@ -265,7 +275,7 @@ nav a.active {
   width: 54px;
   height: 54px;
   border: 3px solid #1a1a1a;
-  border-top-color: #1ed760;
+  border-top-color: cyan;
   border-radius: 50%;
   animation: rotate 0.9s linear infinite;
   margin: 0 auto 20px;
@@ -314,7 +324,7 @@ nav a.active {
 
 .badge {
   display: inline-block;
-  background: #1ed760;
+  background: #00cccc;
   color: #000;
   padding: 3px 10px;
   border-radius: 12px;
