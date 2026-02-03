@@ -15,7 +15,7 @@ export const registerApp = async (req, res) => {
     const apiKey = crypto.randomBytes(16).toString("hex");
 
     await db.run(
-      "INSERT INTO apps (app_name, webhook_url, api_key) VALUES (?, ?, ?)",
+      "INSERT INTO webhooks.apps (app_name, webhook_url, api_key) VALUES ($1, $2, $3) RETURNING id",
       [app_name, webhook_url, apiKey]
     );
 
@@ -37,8 +37,8 @@ export const registerApp = async (req, res) => {
 // ✅ Simple dummy analytics route
 export const getAppUsage = async (req, res) => {
   try {
-    const usage = await db.all("SELECT * FROM usage");
-    res.json(usage);
+    const usage = await db.all("SELECT * FROM webhooks.usage", []);
+    res.json(usage || []);
   } catch (error) {
     console.error("getAppUsage error:", error);
     res.status(500).json({ error: "Failed to get app usage" });

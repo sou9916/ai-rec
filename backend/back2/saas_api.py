@@ -1,6 +1,9 @@
 import pandas as pd
 import aiofiles
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import uuid
 import json
 import asyncio
@@ -57,10 +60,10 @@ async def notify_webhooks(event_type: str, payload: dict):
 os.makedirs("user_uploads", exist_ok=True)
 os.makedirs("mlflow_artifacts", exist_ok=True)
 
-MLFLOW_TRACKING_DB = "sqlite:///mlflow.db"
-MLFLOW_ARTIFACT_LOCATION = "./mlflow_artifacts"
-os.environ["MLFLOW_TRACKING_URI"] = MLFLOW_TRACKING_DB
-mlflow.set_tracking_uri(MLFLOW_TRACKING_DB)
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", os.getenv("DATABASE_URL", "postgresql://localhost:5432/neondb"))
+MLFLOW_ARTIFACT_LOCATION = os.getenv("MLFLOW_ARTIFACT_LOCATION", "./mlflow_artifacts")
+os.environ["MLFLOW_TRACKING_URI"] = MLFLOW_TRACKING_URI
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
 # try:
 #     mlflow.create_experiment("recommender_projects", artifact_location=MLFLOW_ARTIFACT_LOCATION)
@@ -76,10 +79,7 @@ experiment = mlflow.get_experiment_by_name("recommender_projects")
 # If it doesn't exist, create it
 if not experiment:
     print("Creating new MLflow experiment: recommender_projects")
-    mlflow.create_experiment(
-        "recommender_projects", 
-        artifact_location=MLFLOW_ARTIFACT_LOCATION
-    )
+    mlflow.create_experiment("recommender_projects", artifact_location=MLFLOW_ARTIFACT_LOCATION)
 
 # Set the experiment as the active one for all runs
 mlflow.set_experiment("recommender_projects")

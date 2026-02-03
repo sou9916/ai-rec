@@ -7,9 +7,8 @@ const router = express.Router();
 // ✅ Get all registered apps
 router.get("/", async (req, res) => {
   try {
-    const apps = await db.all("SELECT * FROM apps ORDER BY created_at DESC");
-    console.log("📦 Existing apps:", apps);
-    res.json(apps);
+    const apps = await db.all("SELECT * FROM webhooks.apps ORDER BY created_at DESC", []);
+    res.json(apps || []);
   } catch (error) {
     console.error("Error fetching apps:", error);
     res.status(500).json({ error: "Failed to load apps" });

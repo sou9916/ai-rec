@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Globe, Key, Clock, TrendingUp, Webhook, Plus, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
+import { API_WEBHOOK } from "../api";
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = `${API_WEBHOOK}/api`;
 
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white rounded-4xl shadow-xl border border-gray-100 overflow-hidden ${className}`}>
@@ -163,30 +164,49 @@ function Dashboard() {
   const [apps, setApps] = useState([]);
   const [usage, setUsage] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
   const fetchDashboardData = async () => {
+    setFetchError(null);
+    setLoading(true);
     try {
-      setLoading(true);
-
       const [appsRes, usageRes] = await Promise.all([
         fetch(`${API_URL}/apps`),
         fetch(`${API_URL}/apps/usage`),
       ]);
 
-      if (!appsRes.ok || !usageRes.ok) {
-        throw new Error("Failed to fetch data from backend");
+      let appsData = [];
+      let usageData = [];
+
+      if (appsRes.ok) {
+        try {
+          appsData = await appsRes.json();
+          if (!Array.isArray(appsData)) appsData = [];
+        } catch {
+          appsData = [];
+        }
       }
 
-      const appsData = await appsRes.json();
-      const usageData = await usageRes.json();
-
-      console.log("Apps fetched:", appsData);
-      console.log("Usage fetched:", usageData);
+      if (usageRes.ok) {
+        try {
+          usageData = await usageRes.json();
+          if (!Array.isArray(usageData)) usageData = [];
+        } catch {
+          usageData = [];
+        }
+      }
 
       setApps(appsData);
       setUsage(usageData);
+
+      if (!appsRes.ok || !usageRes.ok) {
+        setFetchError("Could not load apps or usage. Is the webhook service running on port 3001?");
+      }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
+      setApps([]);
+      setUsage([]);
+      setFetchError("Network error. Is the webhook service running?");
     } finally {
       setLoading(false);
     }
@@ -203,6 +223,12 @@ function Dashboard() {
   return (
     <div className="p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
+        {fetchError && (
+          <div className="p-4 rounded-xl bg-amber-50 border-2 border-amber-200 text-amber-800 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <p className="font-medium">{fetchError}</p>
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center space-x-4">
           <div className="w-14 h-14 bg-gradient-to-br from-red-900 to-cyan-600 rounded-4xl flex items-center justify-center shadow-lg">

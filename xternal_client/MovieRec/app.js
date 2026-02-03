@@ -1,5 +1,7 @@
-const API_KEY = '2af8a52f3788c4c6323dfedb63417164';
-const PROJECT = 3; 
+// From Webhook Dashboard: register an app and paste the API key here.
+const API_KEY = '62b885ef121413cb2b71400c510a4bdd';
+// Must match a project ID that exists in the ML backend (create project in Dashboard first; list IDs: GET http://localhost:8000/projects/)
+const PROJECT = 1;
 const ENDPOINT = 'http://localhost:3001/api/recommend';
 
 const moviesView = document.getElementById('moviesView');

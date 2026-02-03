@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
   try {
     // 1️⃣ Validate API key
     console.log("🔑 Validating API key...");
-    const app = await db.get("SELECT * FROM apps WHERE api_key = ?", [apiKey]);
+    const app = await db.get("SELECT * FROM webhooks.apps WHERE api_key = $1", [apiKey]);
     if (!app) {
       console.log("❌ Invalid API key");
       return res.status(403).json({ error: "Invalid API key" });
@@ -38,10 +38,10 @@ router.post("/", async (req, res) => {
 
     // 3️⃣ Log usage
     await db.run(
-      `INSERT INTO usage (app_name, usage_count)
-       VALUES (?, 1)
-       ON CONFLICT(app_name)
-       DO UPDATE SET usage_count = usage_count + 1;`,
+      `INSERT INTO webhooks.usage (app_name, usage_count)
+       VALUES ($1, 1)
+       ON CONFLICT (app_name)
+       DO UPDATE SET usage_count = webhooks.usage.usage_count + 1`,
       [app.app_name]
     );
 

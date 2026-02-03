@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Papa from "papaparse";
 import { Upload, Sparkles, TrendingUp, ChevronDown, Loader2, CheckCircle, AlertCircle, Play } from 'lucide-react';
-
-const API_URL = "http://localhost:8000";
+import { API_BACKEND } from "../api";
 
 const Input = (props) => (
   <input
@@ -140,11 +139,22 @@ function RecommenderPanel() {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/projects/`);
-      const data = await response.json();
-      setProjects(data);
+      const response = await fetch(`${API_BACKEND}/projects/`);
+      if (!response.ok) {
+        setProjects([]);
+        return;
+      }
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        setProjects([]);
+        return;
+      }
+      setProjects(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch projects:", error);
+      setProjects([]);
     }
   }, []);
 
@@ -164,7 +174,7 @@ function RecommenderPanel() {
 
   const checkProjectStatus = async (projectId) => {
     try {
-      const response = await fetch(`${API_URL}/project/${projectId}/status`);
+      const response = await fetch(`${API_BACKEND}/project/${projectId}/status`);
       if (!response.ok) throw new Error("Failed to get status");
       const data = await response.json();
 
@@ -210,17 +220,26 @@ function RecommenderPanel() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/create-project/`, {
+      const response = await fetch(`${API_BACKEND}/create-project/`, {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "Upload failed");
+        let detail = "Upload failed";
+        try {
+          const err = await response.json();
+          detail = err.detail || (typeof err === "string" ? err : detail);
+        } catch (_) {}
+        throw new Error(detail);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Invalid response from server");
+      }
       setSelectedProjectId(data.id);
       setCurrentStatus("processing");
       fetchProjects();
@@ -244,22 +263,28 @@ function RecommenderPanel() {
     if (project.status === "ready" && project.model_type) {
       if (["content", "hybrid"].includes(project.model_type)) {
         try {
-          const res = await fetch(`${API_URL}/project/${projectId}/items`);
+          const res = await fetch(`${API_BACKEND}/project/${projectId}/items`);
+          if (!res.ok) return;
           const data = await res.json();
-          setItemsList(data);
-          setSelectedItemTitle(data[0]?.title || "");
+          const list = Array.isArray(data) ? data : [];
+          setItemsList(list);
+          setSelectedItemTitle(list[0]?.title || "");
         } catch (e) {
           console.error("Failed to fetch items");
+          setItemsList([]);
         }
       }
       if (["collaborative", "hybrid"].includes(project.model_type)) {
         try {
-          const res = await fetch(`${API_URL}/project/${projectId}/users`);
+          const res = await fetch(`${API_BACKEND}/project/${projectId}/users`);
+          if (!res.ok) return;
           const data = await res.json();
-          setUsersList(data);
-          setSelectedUserId(data[0]?.id || "");
+          const list = Array.isArray(data) ? data : [];
+          setUsersList(list);
+          setSelectedUserId(list[0]?.id || "");
         } catch (e) {
           console.error("Failed to fetch users");
+          setUsersList([]);
         }
       }
     }
@@ -283,7 +308,7 @@ function RecommenderPanel() {
 
     try {
       params.append("n", "10");
-      const url = `${API_URL}/project/${selectedProjectId}/recommendations?${params.toString()}`;
+      const url = `${API_BACKEND}/project/${selectedProjectId}/recommendations?${params.toString()}`;
       console.log("Fetching recommendations:", url);
 
       const response = await fetch(url);

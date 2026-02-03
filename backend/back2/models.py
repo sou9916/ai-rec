@@ -18,9 +18,10 @@ class FileType(str, enum.Enum):
     CONTENT = "content"
     INTERACTION = "interaction"
 
-# --- Main Project Table ---
+# --- Main Project Table (schema: recommender for PostgreSQL/Neon) ---
 class RecommenderProject(Base):
     __tablename__ = "recommender_projects"
+    __table_args__ = {"schema": "recommender"}
 
     id = Column(Integer, primary_key=True, index=True)
     project_name = Column(String, index=True)
@@ -39,13 +40,14 @@ class RecommenderProject(Base):
 # --- Uploaded Files Table ---
 class UploadedFile(Base):
     __tablename__ = "uploaded_files"
-    
+    __table_args__ = {"schema": "recommender"}
+
     id = Column(Integer, primary_key=True, index=True)
     original_filename = Column(String)
     storage_path = Column(String, unique=True)
-    file_type = Column(String) # 'content' or 'interaction'
-    
-    project_id = Column(Integer, ForeignKey("recommender_projects.id"))
+    file_type = Column(String)  # 'content' or 'interaction'
+
+    project_id = Column(Integer, ForeignKey("recommender.recommender_projects.id"))
     project = relationship("RecommenderProject", back_populates="uploaded_files")
     
     # A file has its own set of schema mappings
@@ -54,14 +56,15 @@ class UploadedFile(Base):
 # --- Schema Mappings Table ---
 class SchemaMapping(Base):
     __tablename__ = "schema_mappings"
-    
+    __table_args__ = {"schema": "recommender"}
+
     id = Column(Integer, primary_key=True, index=True)
-    
+
     # e.g., 'item_id', 'item_title', 'user_id', 'rating'
-    app_schema_key = Column(String, index=True) 
-    
+    app_schema_key = Column(String, index=True)
+
     # The column name from the user's CSV
     user_csv_column = Column(String)
-    
-    file_id = Column(Integer, ForeignKey("uploaded_files.id"))
+
+    file_id = Column(Integer, ForeignKey("recommender.uploaded_files.id"))
     file = relationship("UploadedFile", back_populates="schema_mappings")

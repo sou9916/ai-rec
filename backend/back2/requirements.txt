@@ -1,10 +1,13 @@
 fastapi
 uvicorn[standard]
+python-dotenv
 sqlalchemy
+psycopg2-binary
 pandas
 scikit-learn
 mlflow
 scipy
 python-multipart
 aiofiles
+httpx
 fastapi-cors

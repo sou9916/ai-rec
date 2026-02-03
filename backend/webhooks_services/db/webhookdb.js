@@ -1,47 +1,59 @@
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import pg from "pg";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, "..", ".ENV") });
 
-let db;
+const { Pool } = pg;
 
-const initDB = async () => {
-  // ✅ Absolute path fix so it always points to the correct DB file
-  const dbPath = path.join(__dirname, "webhooks.db");
+const connectionString = process.env.DATABASE_URL || "postgresql://localhost:5432/neondb";
+const pool = new Pool({ connectionString });
 
-  db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database,
-  });
+const ready = (async () => {
+  const client = await pool.connect();
+  try {
+    await client.query("CREATE SCHEMA IF NOT EXISTS webhooks;");
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS webhooks.apps (
+        id SERIAL PRIMARY KEY,
+        app_name TEXT,
+        webhook_url TEXT,
+        api_key TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS webhooks.usage (
+        id SERIAL PRIMARY KEY,
+        app_name TEXT UNIQUE,
+        usage_count INTEGER DEFAULT 0
+      );
+    `);
+    console.log("✅ PostgreSQL ready: schema webhooks (tables apps & usage)");
+  } finally {
+    client.release();
+  }
+  return pool;
+})();
 
-  // Create the "apps" table if it doesn’t exist
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS apps (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      app_name TEXT,
-      webhook_url TEXT,
-      api_key TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  // Create the "usage" table if it doesn’t exist
- await db.exec(`
-  CREATE TABLE IF NOT EXISTS usage (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    app_name TEXT UNIQUE,
-    usage_count INTEGER DEFAULT 0
-  );
-`);
-
-  console.log("✅ SQLite ready: tables apps & usage");
-  console.log("📁 Database file path:", dbPath);
-
-  return db;
+export default {
+  get ready() {
+    return ready;
+  },
+  async all(sql, params = []) {
+    const result = await pool.query(sql, params);
+    return result.rows;
+  },
+  async get(sql, params = []) {
+    const result = await pool.query(sql, params);
+    return result.rows[0] ?? null;
+  },
+  async run(sql, params = []) {
+    const result = await pool.query(sql, params);
+    const lastID = result.rows[0]?.id ?? null;
+    return { lastID };
+  },
 };
-
-// Initialize and export the DB connection
-export default await initDB();
