@@ -7,25 +7,25 @@ This document describes the end-to-end architecture, data flow, and design of th
 ## 1. High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENTS                                            │
-├──────────────────────────────────┬──────────────────────────────────────────────┤
-│  React Dashboard (Vite)           │  External clients (MovieRec, MusicRec, etc.)│
-│  http://localhost:5173             │  Static HTML/JS, open index.html           │
-│  • Login / Signup                  │  • API key + project_id in app.js          │
-│  • Recommender Studio              │  • POST /api/recommend                     │
-│  • Webhook Dashboard               │                                            │
-└──────────────┬───────────────────┴───────────────────────┬──────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENTS                                          │
+├──────────────────────────────────┬────────────────────────────────────────────┤
+│  React Dashboard (Vite)          │  External clients (MovieRec, MusicRec, etc.)│
+│  http://localhost:5173           │  Static HTML/JS, open index.html           │
+│  • Login / Signup                │  • API key + project_id in app.js          │
+│  • Recommender Studio            │  • POST /api/recommend                     │
+│  • Webhook Dashboard             │                                            │
+└──────────────┬───────────────────┴───────────────────────┬────────────────────┘
                │                                            │
                │ JWT (login)                                 │ x-api-key
                ▼                                            ▼
-┌──────────────────────────────┐              ┌──────────────────────────────────────┐
-│  Auth service (Node.js)       │              │  Webhooks service (Node.js)         │
-│  http://localhost:8080        │              │  http://localhost:3001              │
-│  • POST /signup, /login      │              │  • POST /api/apps/register           │
-│  • JWT in response           │              │  • GET  /api/apps, /api/apps/usage   │
-│  • Schema: auth               │              │  • POST /api/recommend              │
-└──────────────┬───────────────┘              └──────────────┬───────────────────────┘
+┌──────────────────────────────┐              ┌─────────────────────────────────────┐
+│  Auth service (Node.js)      │              │  Webhooks service (Node.js)         │
+│  http://localhost:8080       │              │  http://localhost:3001              │
+│  • POST /signup, /login      │              │  • POST /api/apps/register          │
+│  • JWT in response           │              │  • GET  /api/apps, /api/apps/usage  │
+│  • Schema: auth              │              │  • POST /api/recommend              │
+└──────────────┬───────────────┘              └──────────────┬──────────────────────┘
                │                                             │
                │ PostgreSQL                                   │ GET /project/{id}/recommendations
                ▼                                             ▼
