@@ -8,46 +8,46 @@ This document describes the end-to-end architecture, data flow, and design of th
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENTS                                             │
+│                              CLIENTS                                            │
 ├──────────────────────────────────┬──────────────────────────────────────────────┤
-│  React Dashboard (Vite)           │  External clients (MovieRec, MusicRec, etc.)  │
-│  http://localhost:5173             │  Static HTML/JS, open index.html               │
-│  • Login / Signup                  │  • API key + project_id in app.js             │
-│  • Recommender Studio              │  • POST /api/recommend (via Webhooks service)   │
-│  • Webhook Dashboard               │                                                │
-└──────────────┬───────────────────┴───────────────────────┬───────────────────────┘
+│  React Dashboard (Vite)           │  External clients (MovieRec, MusicRec, etc.)│
+│  http://localhost:5173             │  Static HTML/JS, open index.html           │
+│  • Login / Signup                  │  • API key + project_id in app.js          │
+│  • Recommender Studio              │  • POST /api/recommend                     │
+│  • Webhook Dashboard               │                                            │
+└──────────────┬───────────────────┴───────────────────────┬──────────────────────┘
                │                                            │
                │ JWT (login)                                 │ x-api-key
                ▼                                            ▼
 ┌──────────────────────────────┐              ┌──────────────────────────────────────┐
-│  Auth service (Node.js)       │              │  Webhooks service (Node.js)          │
-│  http://localhost:8080        │              │  http://localhost:3001                │
-│  • POST /signup, /login      │              │  • POST /api/apps/register            │
-│  • JWT in response           │              │  • GET  /api/apps, /api/apps/usage    │
-│  • Schema: auth               │              │  • POST /api/recommend (proxy + key)   │
+│  Auth service (Node.js)       │              │  Webhooks service (Node.js)         │
+│  http://localhost:8080        │              │  http://localhost:3001              │
+│  • POST /signup, /login      │              │  • POST /api/apps/register           │
+│  • JWT in response           │              │  • GET  /api/apps, /api/apps/usage   │
+│  • Schema: auth               │              │  • POST /api/recommend              │
 └──────────────┬───────────────┘              └──────────────┬───────────────────────┘
                │                                             │
                │ PostgreSQL                                   │ GET /project/{id}/recommendations
                ▼                                             ▼
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  PostgreSQL (single DB or Neon)                                                    │
-│  Schemas: auth | webhooks | recommender                                           │
-│  • auth: users (login/signup)                                                      │
-│  • webhooks: apps (api_key, webhook_url), usage (app_name, usage_count)            │
-│  • recommender: recommender_projects, uploaded_files, schema_mappings              │
+│  PostgreSQL (single DB or Neon)                                                  │
+│  Schemas: auth | webhooks | recommender                                          │
+│  • auth: users (login/signup)                                                    │
+│  • webhooks: apps (api_key, webhook_url), usage (app_name, usage_count)          │
+│  • recommender: recommender_projects, uploaded_files, schema_mappings            │
 └──────────────────────────────────────────────────────────────────────────────────┘
                ▲                                             │
                │                                             │
 ┌──────────────┴───────────────┐              ┌──────────────┴───────────────────────┐
-│  ML Recommender (FastAPI)     │              │  MLflow (optional UI :5000)          │
-│  http://localhost:8000        │◄─────────────►│  Model registry (same DB or URI)      │
-│  • POST /create-project/     │   register   │  • project-{id}-recommender           │
-│  • GET  /projects/           │   & load     │  • pyfunc wrapper (Content/CF/Hybrid) │
-│  • GET  /project/{id}/status │   models     │                                        │
-│  • GET  /project/{id}/items  │              │                                        │
-│  • GET  /project/{id}/users  │              │                                        │
-│  • GET  /project/{id}/recommendations       │                                        │
-└──────────────────────────────┘              └───────────────────────────────────────┘
+│  ML Recommender (FastAPI)    │              │  MLflow (optional UI :5000)          │
+│  http://localhost:8000       │◄────────────►│  Model registry (same DB or URI)     │
+│  • POST /create-project/     │   register   │  • project-{id}-recommender          │
+│  • GET  /projects/           │   & load     │  • pyfunc wrapper (Content/CF/Hybrid)│
+│  • GET  /project/{id}/status │   models     │                                      │
+│  • GET  /project/{id}/items  │              │                                      │
+│  • GET  /project/{id}/users  │              │                                      │
+│  • GET  /project/{id}/recommendations       │                                      │
+└──────────────────────────────┘              └──────────────────────────────────────┘
 ```
 
 ---
