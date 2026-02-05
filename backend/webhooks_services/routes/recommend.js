@@ -28,12 +28,17 @@ router.post("/", async (req, res) => {
     console.log("✅ API key valid for app:", app.app_name);
 
     const fastapiUrl = `http://localhost:8000/project/${project_id}/recommendations`;
-    const params = {};
+    const params = { n: 10 };
     if (item_title) params.item_title = item_title;
     if (user_id) params.user_id = user_id;
 
+    const headers = {};
+    if (process.env.BACK2_INTERNAL_KEY) {
+      headers["X-Internal-Key"] = process.env.BACK2_INTERNAL_KEY;
+    }
+
     console.log("📡 Calling FastAPI:", fastapiUrl, params);
-    const recRes = await axios.get(fastapiUrl, { params });
+    const recRes = await axios.get(fastapiUrl, { params, headers });
     const recData = recRes.data;
     console.log("✅ FastAPI response:", Object.keys(recData));
 

@@ -30,6 +30,7 @@ class RecommenderProjectBase(BaseModel):
 
 class RecommenderProject(RecommenderProjectBase):
     id: int
+    owner_id: Optional[int] = None
     status: ProjectStatus
     model_type: Optional[ModelType]
     mlflow_model_name: Optional[str]

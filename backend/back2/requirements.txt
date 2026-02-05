@@ -3,6 +3,7 @@ uvicorn[standard]
 python-dotenv
 sqlalchemy
 psycopg2-binary
+PyJWT
 pandas
 scikit-learn
 mlflow

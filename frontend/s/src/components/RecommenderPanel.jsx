@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Papa from "papaparse";
 import { Upload, Sparkles, TrendingUp, ChevronDown, Loader2, CheckCircle, AlertCircle, Play, Trash2 } from 'lucide-react';
-import { API_BACKEND } from "../api";
+import { API_BACKEND, getBackendAuthHeaders } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const Input = (props) => (
   <input
@@ -87,6 +88,7 @@ const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
 );
 
 function RecommenderPanel() {
+  const { logout } = useAuth();
   const [projectName, setProjectName] = useState("");
   const [contentFile, setContentFile] = useState(null);
   const [interactionFile, setInteractionFile] = useState(null);
@@ -116,6 +118,13 @@ function RecommenderPanel() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [recommendations, setRecommendations] = useState(null);
   const [isLoadingRecs, setIsLoadingRecs] = useState(false);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  const selectedProjectIdRef = useRef(selectedProjectId);
+  useEffect(() => {
+    selectedProjectIdRef.current = selectedProjectId;
+  }, [selectedProjectId]);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
@@ -139,8 +148,11 @@ function RecommenderPanel() {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BACKEND}/projects/`);
+      const response = await fetch(`${API_BACKEND}/projects/`, {
+        headers: getBackendAuthHeaders(),
+      });
       if (!response.ok) {
+        if (response.status === 401) logout();
         setProjects([]);
         return;
       }
@@ -156,7 +168,7 @@ function RecommenderPanel() {
       console.error("Failed to fetch projects:", error);
       setProjects([]);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     fetchProjects();
@@ -174,7 +186,9 @@ function RecommenderPanel() {
 
   const checkProjectStatus = async (projectId) => {
     try {
-      const response = await fetch(`${API_BACKEND}/project/${projectId}/status`);
+      const response = await fetch(`${API_BACKEND}/project/${projectId}/status`, {
+        headers: getBackendAuthHeaders(),
+      });
       if (!response.ok) throw new Error("Failed to get status");
       const data = await response.json();
 
@@ -222,10 +236,17 @@ function RecommenderPanel() {
     try {
       const response = await fetch(`${API_BACKEND}/create-project/`, {
         method: "POST",
+        headers: getBackendAuthHeaders(),
         body: formData,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setErrorMessage("Session expired. Please log in again.");
+          logout();
+          setCurrentStatus("error");
+          return;
+        }
         let detail = "Upload failed";
         try {
           const err = await response.json();
@@ -253,7 +274,10 @@ function RecommenderPanel() {
     e.stopPropagation();
     if (!window.confirm("Delete this project? This cannot be undone.")) return;
     try {
-      const response = await fetch(`${API_BACKEND}/project/${projectId}`, { method: "DELETE" });
+      const response = await fetch(`${API_BACKEND}/project/${projectId}`, {
+        method: "DELETE",
+        headers: getBackendAuthHeaders(),
+      });
       if (!response.ok) throw new Error("Failed to delete");
       if (selectedProjectId === projectId) {
         setSelectedProjectId(null);
@@ -278,35 +302,84 @@ function RecommenderPanel() {
     setErrorMessage("");
     setItemsList([]);
     setUsersList([]);
+    setSelectedItemTitle("");
+    setSelectedUserId("");
 
-    if (project.status === "ready" && project.model_type) {
-      if (["content", "hybrid"].includes(project.model_type)) {
-        try {
-          const res = await fetch(`${API_BACKEND}/project/${projectId}/items`);
-          if (!res.ok) return;
-          const data = await res.json();
-          const list = Array.isArray(data) ? data : [];
-          setItemsList(list);
-          setSelectedItemTitle(list[0]?.title || "");
-        } catch (e) {
-          console.error("Failed to fetch items");
-          setItemsList([]);
-        }
-      }
-      if (["collaborative", "hybrid"].includes(project.model_type)) {
-        try {
-          const res = await fetch(`${API_BACKEND}/project/${projectId}/users`);
-          if (!res.ok) return;
-          const data = await res.json();
-          const list = Array.isArray(data) ? data : [];
-          setUsersList(list);
-          setSelectedUserId(list[0]?.id || "");
-        } catch (e) {
-          console.error("Failed to fetch users");
-          setUsersList([]);
-        }
-      }
-    }
+    if (project.status !== "ready" || !project.model_type) return;
+
+    const needsItems = ["content", "hybrid"].includes(project.model_type);
+    const needsUsers = ["collaborative", "hybrid"].includes(project.model_type);
+    if (needsItems) setLoadingItems(true);
+    if (needsUsers) setLoadingUsers(true);
+
+    const headers = getBackendAuthHeaders();
+    const stillForThisProject = () => selectedProjectIdRef.current === projectId;
+
+    const fetchItems = needsItems
+      ? fetch(`${API_BACKEND}/project/${projectId}/items`, { headers })
+          .then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              const msg = err.detail || err.message || `Failed to load items (${res.status})`;
+              if (res.status === 401) {
+                setErrorMessage("Session expired. Please log in again.");
+                logout();
+              } else {
+                setErrorMessage(msg);
+              }
+              throw new Error(msg);
+            }
+            return res.json();
+          })
+          .then((data) => {
+            if (!stillForThisProject()) return;
+            setErrorMessage("");
+            const list = Array.isArray(data) ? data : [];
+            setItemsList(list);
+            setSelectedItemTitle(list[0]?.title || "");
+          })
+          .catch((e) => {
+            if (stillForThisProject()) setItemsList([]);
+            if (e.message && !e.message.includes("Session expired")) console.error("Failed to fetch items", e);
+          })
+          .finally(() => {
+            if (stillForThisProject()) setLoadingItems(false);
+          })
+      : Promise.resolve();
+
+    const fetchUsers = needsUsers
+      ? fetch(`${API_BACKEND}/project/${projectId}/users`, { headers })
+          .then(async (res) => {
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              const msg = err.detail || err.message || `Failed to load users (${res.status})`;
+              if (res.status === 401) {
+                setErrorMessage("Session expired. Please log in again.");
+                logout();
+              } else {
+                setErrorMessage(msg);
+              }
+              throw new Error(msg);
+            }
+            return res.json();
+          })
+          .then((data) => {
+            if (!stillForThisProject()) return;
+            setErrorMessage("");
+            const list = Array.isArray(data) ? data : [];
+            setUsersList(list);
+            setSelectedUserId(list[0]?.id || "");
+          })
+          .catch((e) => {
+            if (stillForThisProject()) setUsersList([]);
+            if (e.message && !e.message.includes("Session expired")) console.error("Failed to fetch users", e);
+          })
+          .finally(() => {
+            if (stillForThisProject()) setLoadingUsers(false);
+          })
+      : Promise.resolve();
+
+    await Promise.all([fetchItems, fetchUsers]);
   };
 
   const handleGetRecommendations = async (e) => {
@@ -330,7 +403,9 @@ function RecommenderPanel() {
       const url = `${API_BACKEND}/project/${selectedProjectId}/recommendations?${params.toString()}`;
       console.log("Fetching recommendations:", url);
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getBackendAuthHeaders(),
+      });
       console.log("Response status:", response.status);
 
       if (!response.ok) {
@@ -537,7 +612,11 @@ function RecommenderPanel() {
                       <Select
                         value={selectedItemTitle}
                         onChange={(e) => setSelectedItemTitle(e.target.value)}
+                        disabled={loadingItems}
                       >
+                        <option value="">
+                          {loadingItems ? "Loading items..." : itemsList.length === 0 ? "No items" : "Select an item..."}
+                        </option>
                         {itemsList.map((item) => (
                           <option key={item.id} value={item.title}>
                             {item.title}
@@ -546,7 +625,7 @@ function RecommenderPanel() {
                       </Select>
                     </div>
                   )}
-                  
+
                   {(selectedProject.model_type === "collaborative" ||
                     selectedProject.model_type === "hybrid") && (
                     <div>
@@ -556,7 +635,11 @@ function RecommenderPanel() {
                       <Select
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
+                        disabled={loadingUsers}
                       >
+                        <option value="">
+                          {loadingUsers ? "Loading users..." : usersList.length === 0 ? "No users" : "Select a user..."}
+                        </option>
                         {usersList.map((user) => (
                           <option key={user.id} value={user.id}>
                             User {user.id}

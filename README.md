@@ -47,18 +47,21 @@ JWT_SECRET=your-strong-secret-change-in-production
 ```env
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
 MLFLOW_TRACKING_URI=postgresql://user:pass@host:5432/dbname
+JWT_SECRET=your-strong-secret-change-in-production
+BACK2_INTERNAL_KEY=your-internal-key-for-webhook-service
 ```
 
-Use the same DB (or one with a `recommender` schema). Tables are created on startup.
+Use the same DB (or one with a `recommender` schema). Tables are created on startup. **`JWT_SECRET`** must match the auth service so the ML backend can verify JWTs and scope projects per user. **`BACK2_INTERNAL_KEY`** (optional): set the same value in the webhooks service so it can call the ML backend for recommendations without a user JWT.
 
 ### 3. Webhooks service (`backend/webhooks_services/.env`)
 
 ```env
 PORT=3001
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
+BACK2_INTERNAL_KEY=your-internal-key-for-webhook-service
 ```
 
-Optional: `FASTAPI_URL=http://localhost:8000` if the ML backend is on another host.
+**`BACK2_INTERNAL_KEY`** must match the value in `backend/back2/.env` so the webhook service can call the ML backend for recommendations. Optional: `FASTAPI_URL=http://localhost:8000` if the ML backend is on another host.
 
 ### 4. Frontend (optional)
 

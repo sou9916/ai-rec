@@ -24,6 +24,7 @@ class RecommenderProject(Base):
     __table_args__ = {"schema": "recommender"}
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, index=True, nullable=True)  # auth.users.id; NULL = legacy pre-migration
     project_name = Column(String, index=True)
     status = Column(String, default=ProjectStatus.PENDING)
     
