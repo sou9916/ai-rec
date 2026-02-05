@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Papa from "papaparse";
-import { Upload, Sparkles, TrendingUp, ChevronDown, Loader2, CheckCircle, AlertCircle, Play } from 'lucide-react';
+import { Upload, Sparkles, TrendingUp, ChevronDown, Loader2, CheckCircle, AlertCircle, Play, Trash2 } from 'lucide-react';
 import { API_BACKEND } from "../api";
 
 const Input = (props) => (
@@ -246,6 +246,25 @@ function RecommenderPanel() {
     } catch (error) {
       setErrorMessage(error.message);
       setCurrentStatus("error");
+    }
+  };
+
+  const handleDeleteProject = async (e, projectId) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this project? This cannot be undone.")) return;
+    try {
+      const response = await fetch(`${API_BACKEND}/project/${projectId}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Failed to delete");
+      if (selectedProjectId === projectId) {
+        setSelectedProjectId(null);
+        setCurrentStatus(null);
+        setRecommendations(null);
+        setItemsList([]);
+        setUsersList([]);
+      }
+      fetchProjects();
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to delete project");
     }
   };
 
@@ -619,7 +638,17 @@ function RecommenderPanel() {
                     <span className="text-xs font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded-md">
                       #{p.id}
                     </span>
-                    <span
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteProject(e, p.id)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Delete project"
+                        aria-label="Delete project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <span
                       className={`flex items-center space-x-1 text-xs font-bold ${
                         p.status === "ready"
                           ? "text-green-600"
@@ -632,7 +661,8 @@ function RecommenderPanel() {
                       {p.status === "processing" && <Loader2 className="w-3 h-3 animate-spin" />}
                       {p.status === "error" && <AlertCircle className="w-3 h-3" />}
                       <span className="uppercase">{p.status}</span>
-                    </span>
+                      </span>
+                    </div>
                   </div>
                   <div className="font-bold text-gray-900 mb-2">
                     {p.project_name}

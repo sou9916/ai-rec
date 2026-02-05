@@ -1,12 +1,15 @@
-import pg from "pg";
-
-const { Pool } = pg;
+import "dotenv/config";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import * as schema from "./schema.js";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/neondb",
 });
 
-const connectDB = async () => {
+export const db = drizzle(pool, { schema });
+
+export async function connectDB() {
   try {
     const client = await pool.connect();
     await client.query("CREATE SCHEMA IF NOT EXISTS auth;");
@@ -25,7 +28,4 @@ const connectDB = async () => {
     console.error("PostgreSQL connection error:", err.message);
     process.exit(1);
   }
-};
-
-export default connectDB;
-export { pool };
+}

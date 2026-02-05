@@ -1,16 +1,11 @@
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import pg from "pg";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
-dotenv.config({ path: path.join(__dirname, "..", ".ENV") });
-
-const { Pool } = pg;
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import * as schema from "./schema.js";
 
 const connectionString = process.env.DATABASE_URL || "postgresql://localhost:5432/neondb";
 const pool = new Pool({ connectionString });
+
+export const db = drizzle(pool, { schema });
 
 const ready = (async () => {
   const client = await pool.connect();
@@ -39,21 +34,4 @@ const ready = (async () => {
   return pool;
 })();
 
-export default {
-  get ready() {
-    return ready;
-  },
-  async all(sql, params = []) {
-    const result = await pool.query(sql, params);
-    return result.rows;
-  },
-  async get(sql, params = []) {
-    const result = await pool.query(sql, params);
-    return result.rows[0] ?? null;
-  },
-  async run(sql, params = []) {
-    const result = await pool.query(sql, params);
-    const lastID = result.rows[0]?.id ?? null;
-    return { lastID };
-  },
-};
+export { ready };

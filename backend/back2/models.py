@@ -35,7 +35,7 @@ class RecommenderProject(Base):
     mlflow_model_version = Column(Integer, nullable=True)
 
     # A project can have multiple files (e.g., one content, one interaction)
-    uploaded_files = relationship("UploadedFile", back_populates="project")
+    uploaded_files = relationship("UploadedFile", back_populates="project", cascade="all, delete-orphan")
 
 # --- Uploaded Files Table ---
 class UploadedFile(Base):
@@ -51,7 +51,7 @@ class UploadedFile(Base):
     project = relationship("RecommenderProject", back_populates="uploaded_files")
     
     # A file has its own set of schema mappings
-    schema_mappings = relationship("SchemaMapping", back_populates="file")
+    schema_mappings = relationship("SchemaMapping", back_populates="file", cascade="all, delete-orphan")
 
 # --- Schema Mappings Table ---
 class SchemaMapping(Base):

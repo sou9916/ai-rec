@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import connectDB from "./models/db.js";
+import { connectDB } from "./db/index.js";
 import AuthRoute from "./routes/AuthRoute.js";
 
 await connectDB();

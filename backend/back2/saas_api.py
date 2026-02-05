@@ -9,7 +9,7 @@ import json
 import asyncio
 import mlflow
 import pickle
-import numpy as np  # <-- Add this import
+import numpy as np
 import tempfile
 from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -83,7 +83,6 @@ if not experiment:
 
 # Set the experiment as the active one for all runs
 mlflow.set_experiment("recommender_projects")
-# --- END MLFLOW CONFIG ---
 # --- END MLFLOW CONFIG ---
 
 @asynccontextmanager
@@ -182,8 +181,8 @@ async def process_project(project_id: int, db: Session):
         
         if content_file:
             df_content = pd.read_csv(content_file.storage_path)
-            content_schema = {s.app_schema_key: s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key != 'feature_col'}
-            content_schema['feature_cols'] = [s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key == 'feature_col']
+            content_schema = {s.app_schema_key: s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key != 'feature_col' and (s.user_csv_column or '').strip()}
+            content_schema['feature_cols'] = [s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key == 'feature_col' and (s.user_csv_column or '').strip()]
             all_schemas_map['content'] = content_schema
 
         if interaction_file:
@@ -215,6 +214,10 @@ async def process_project(project_id: int, db: Session):
             
             # --- Train Content-Based Model (Updated) ---
             if model_type in [models.ModelType.CONTENT, models.ModelType.HYBRID]:
+                if not content_schema.get('feature_cols'):
+                    raise ValueError("Content/Hybrid model requires at least one feature column mapped in the content file schema.")
+                if not content_schema.get('item_id') or not content_schema.get('item_title'):
+                    raise ValueError("Content schema must have both item_id and item_title mapped.")
                 print(f"[Task {project_id}]: Fitting ContentBasedRecommender...")
                 cb_recommender = ContentBasedRecommender()
                 cb_recommender.fit(df_content, content_schema)
@@ -258,8 +261,6 @@ async def process_project(project_id: int, db: Session):
                  print(f"[Task {project_id}]: Saved Content data for Collaborative title lookups.")
 
 
-            # --- Save and Register with MLflow (Unchanged) ---
-# --- Save and Register with MLflow (Corrected) ---
             with mlflow.start_run() as run:
                 print(f"[Task {project_id}]: MLflow run started: {run.info.run_id}")
                 mlflow.log_param("model_type", model_type)
@@ -308,19 +309,6 @@ async def process_project(project_id: int, db: Session):
             db.commit()
     finally:
         db.close()
-
-# --- All API Endpoints (Unchanged) ---
-# The /create-project, /projects, /project/{id}/status,
-# /project/{id}/items, /project/{id}/users, and
-# /project/{id}/recommendations endpoints are all
-# IDENTICAL to the previous version. I am omitting them
-# here for brevity, but you should use the exact code
-# from the previous response for them.
-#
-# ... (all endpoints from saas_api.py go here) ...
-#
-
-# --- PASTE ALL OTHER ENDPOINTS FROM THE PREVIOUS RESPONSE BELOW ---
 
 @app.post("/create-project/", response_model=schemas.RecommenderProject)
 async def create_project(
@@ -384,6 +372,23 @@ def get_project_status(project_id: int, db: Session = Depends(database.get_db)):
     if not db_project:
         raise HTTPException(status_code=404, detail="Project not found.")
     return db_project
+
+
+@app.delete("/project/{project_id}")
+def delete_project(project_id: int, db: Session = Depends(database.get_db)):
+    db_project = db.query(models.RecommenderProject).filter(models.RecommenderProject.id == project_id).first()
+    if not db_project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    for f in db_project.uploaded_files:
+        if f.storage_path and os.path.isfile(f.storage_path):
+            try:
+                os.remove(f.storage_path)
+            except OSError:
+                pass
+    db.delete(db_project)
+    db.commit()
+    return {"message": "Project deleted."}
+
 
 def get_project_data(project_id: int, db: Session, file_type: models.FileType):
     db_project = db.query(models.RecommenderProject).filter(models.RecommenderProject.id == project_id).first()
