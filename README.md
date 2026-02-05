@@ -1,4 +1,4 @@
-# AiREC – Recommender as a Service
+# AiREC 
 
 A full-stack **recommendation platform** with ML models (content-based, collaborative, hybrid), webhook notifications, and auth. Upload datasets, train models, register external apps with API keys, and get recommendations via the web UI or REST API.
 
