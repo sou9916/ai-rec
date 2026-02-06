@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import RecommenderPanel from "./components/RecommenderPanel";
 import Dashboard from "./pages/Dashboard";
+import { motion } from "framer-motion";
 import {
   Activity,
   Layers,
@@ -12,12 +13,12 @@ import {
   Settings,
   Home as HomeIcon,
   Zap,
-  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { useAuth } from "./context/AuthContext";
 import { toast } from "react-toastify";
 import { API_BACKEND, API_WEBHOOK, getBackendAuthHeaders } from "./api";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const NAV_ITEMS = [
   {
@@ -58,22 +59,20 @@ const NAV_ITEMS = [
   },
 ];
 
-
-
 const ShellSection = ({ title, eyebrow, description, children }) => (
-  <div className="px-6 py-8 lg:px-10 lg:py-10 ">
-    <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
-      <div className="space-y-2 font-third">
+  <div className="px-6 py-8 lg:px-10 lg:py-10 bg-linear-160 from-white to-neutral-200">
+    <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8 ">
+      <div className="space-y-3">
         {eyebrow && (
-          <p className="text-xs font-semibold tracking-[0.25em] uppercase text-slate-400 ">
+          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-slate-400 font-third">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-2xl lg:text-6xl font-bold text-stone-950 font-third tracking-wide">
+        <h2 className="text-2xl lg:text-6xl font-bold text-neutral-950 font-main">
           {title}
         </h2>
         {description && (
-          <p className="text-sm text-slate-600 max-w-2xl font-sec">
+          <p className="text-sm text-slate-500 max-w-2xl font-third">
             {description}
           </p>
         )}
@@ -84,12 +83,10 @@ const ShellSection = ({ title, eyebrow, description, children }) => (
 );
 
 const StatCard = ({ label, value, hint }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-    <p className="text-xs font-semibold text-slate-500">{label}</p>
+  <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5  border-b-rose-200 border-b-1  border-t-cyan-200 border-t-1 ">
+    <p className="text-sm font-semibold text-slate-800">{label}</p>
     <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
-    {hint && (
-      <p className="text-[11px] text-slate-500 mt-1">{hint}</p>
-    )}
+    {hint && <p className="text-[11px] text-slate-500 mt-1">{hint}</p>}
   </div>
 );
 
@@ -117,55 +114,57 @@ const HomeOverview = ({ onNavigate, summary }) => {
     readyProjects = 0,
     loading = true,
   } = summary || {};
-
+ const { user } = useAuth(); // Get user from AuthContext
+  
+  const userName = user?.name || user?.firstName || user?.username || "User";
   // State for service health checks
   const [serviceHealth, setServiceHealth] = useState({
-    mlBackend: { status: 'checking', latency: null },
-    webhook: { status: 'checking', latency: null },
-    auth: { status: 'checking', latency: null },
+    mlBackend: { status: "checking", latency: null },
+    webhook: { status: "checking", latency: null },
+    auth: { status: "checking", latency: null },
   });
 
   // Health check function using existing endpoints
   useEffect(() => {
     const checkServiceHealth = async () => {
       const results = {
-        mlBackend: { status: 'degraded', latency: null },
-        webhook: { status: 'degraded', latency: null },
-        auth: { status: 'degraded', latency: null },
+        mlBackend: { status: "degraded", latency: null },
+        webhook: { status: "degraded", latency: null },
+        auth: { status: "degraded", latency: null },
       };
 
       // Check ML Backend - using /projects/ endpoint
       try {
         const startML = Date.now();
         const backendHeaders = getBackendAuthHeaders();
-        const mlRes = await fetch(`${API_BACKEND}/projects/`, { 
-          method: 'GET',
+        const mlRes = await fetch(`${API_BACKEND}/projects/`, {
+          method: "GET",
           headers: backendHeaders,
-          signal: AbortSignal.timeout(5000) // 5 second timeout
+          signal: AbortSignal.timeout(5000), // 5 second timeout
         });
         const latencyML = Date.now() - startML;
-        results.mlBackend = { 
-          status: mlRes.ok ? 'ok' : 'degraded', 
-          latency: `${latencyML}ms` 
+        results.mlBackend = {
+          status: mlRes.ok ? "ok" : "degraded",
+          latency: `${latencyML}ms`,
         };
       } catch (error) {
-        results.mlBackend = { status: 'degraded', latency: 'offline' };
+        results.mlBackend = { status: "degraded", latency: "offline" };
       }
 
       // Check Webhook Service - using /api/apps endpoint
       try {
         const startWebhook = Date.now();
-        const webhookRes = await fetch(`${API_WEBHOOK}/api/apps`, { 
-          method: 'GET',
-          signal: AbortSignal.timeout(5000)
+        const webhookRes = await fetch(`${API_WEBHOOK}/api/apps`, {
+          method: "GET",
+          signal: AbortSignal.timeout(5000),
         });
         const latencyWebhook = Date.now() - startWebhook;
-        results.webhook = { 
-          status: webhookRes.ok ? 'ok' : 'degraded', 
-          latency: `${latencyWebhook}ms` 
+        results.webhook = {
+          status: webhookRes.ok ? "ok" : "degraded",
+          latency: `${latencyWebhook}ms`,
         };
       } catch (error) {
-        results.webhook = { status: 'degraded', latency: 'offline' };
+        results.webhook = { status: "degraded", latency: "offline" };
       }
 
       // Check Auth Service - using a basic endpoint or just mark as ok if we got here
@@ -173,42 +172,48 @@ const HomeOverview = ({ onNavigate, summary }) => {
       try {
         const startAuth = Date.now();
         const backendHeaders = getBackendAuthHeaders();
-        const authRes = await fetch(`${API_BACKEND}/projects/`, { 
-          method: 'GET',
+        const authRes = await fetch(`${API_BACKEND}/projects/`, {
+          method: "GET",
           headers: backendHeaders,
-          signal: AbortSignal.timeout(5000)
+          signal: AbortSignal.timeout(5000),
         });
         const latencyAuth = Date.now() - startAuth;
-        results.auth = { 
-          status: authRes.ok ? 'ok' : 'degraded', 
-          latency: `${latencyAuth}ms` 
+        results.auth = {
+          status: authRes.ok ? "ok" : "degraded",
+          latency: `${latencyAuth}ms`,
         };
       } catch (error) {
-        results.auth = { status: 'degraded', latency: 'offline' };
+        results.auth = { status: "degraded", latency: "offline" };
       }
 
       setServiceHealth(results);
     };
 
     checkServiceHealth();
-    
+
     // Re-check every 30 seconds
     const interval = setInterval(checkServiceHealth, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
   // Calculate real metrics from your DB data
-  const activeApps = apps.filter(app => app.status === 'active' || !app.status).length;
-  const avgRequestsPerApp = apps.length > 0 ? Math.floor(totalRequests / apps.length) : 0;
+  const activeApps = apps.filter(
+    (app) => app.status === "active" || !app.status,
+  ).length;
+  const avgRequestsPerApp =
+    apps.length > 0 ? Math.floor(totalRequests / apps.length) : 0;
 
   const handleProjectClick = (project) => {
     // Store project info in sessionStorage to pass to RecommenderPanel
-    sessionStorage.setItem('selectedProject', JSON.stringify({
-      id: project.id,
-      name: project.name,
-      status: project.status
-    }));
+    sessionStorage.setItem(
+      "selectedProject",
+      JSON.stringify({
+        id: project.id,
+        name: project.name,
+        status: project.status,
+      }),
+    );
     // Navigate to recommender tab
     onNavigate("recommender");
   };
@@ -216,169 +221,398 @@ const HomeOverview = ({ onNavigate, summary }) => {
   return (
     <ShellSection
       eyebrow="Workspace"
-      title="Welcome back to AiREC"
-      description="Jump into your recommender projects, inspect webhook integrations, or review how your recommendations are performing."
+      title="Welcome"
+      description="Real-time operational status and performance metrics for your BaaS infrastructure."
     >
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-6 lg:gap-8">
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/70 p-6 flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-600 via-cyan-700 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-cyan-500/50">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div className="leading-tight">
-                  <p className="text-xs font-semibold text-slate-500">
-                    Getting started
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    Build and ship a recommender in three steps
+      {/* LIVE METRICS FROM DB */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 font-third ">
+        <StatCard
+          label="Total Projects"
+          value={loading ? "—" : projects.length}
+          hint={`${readyProjects} ready to serve`}
+        />
+        <StatCard
+          label="Registered Apps"
+          value={loading ? "—" : apps.length}
+          hint={`${activeApps} active applications`}
+        />
+        <StatCard
+          label="Total Requests"
+          value={loading ? "—" : totalRequests.toLocaleString()}
+          hint="All-time API calls"
+        />
+        <StatCard
+          label="Avg per App"
+          value={loading ? "—" : avgRequestsPerApp.toLocaleString()}
+          hint="Request distribution"
+        />
+      </div>
+
+      {/* SYSTEM STATUS - NOW DYNAMIC */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 font-third ">
+        <StatusCard
+          name="ML Backend"
+          status={serviceHealth.mlBackend.status}
+          endpoint={API_BACKEND}
+          latency={serviceHealth.mlBackend.latency}
+        />
+        <StatusCard
+          name="Webhook Service"
+          status={serviceHealth.webhook.status}
+          endpoint={API_WEBHOOK}
+          latency={serviceHealth.webhook.latency}
+        />
+        <StatusCard
+          name="Auth Service"
+          status={serviceHealth.auth.status}
+          endpoint="Auth verified"
+          latency={serviceHealth.auth.latency}
+        />
+      </div>
+
+      {/* MAIN AREA */}
+      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 mt-6">
+        {/* PROJECT STATUS */}
+        <div className="relative bg-gradient-to-br from-white via-slate-50 to-cyan-50/30 rounded-3xl border border-slate-200 p-6  transition-all overflow-hidden">
+          
+
+          {/* Header */}
+          <div className="relative flex items-center justify-between mb-5">
+            
+            <div className="flex items-center gap-3">
+              
+              <div className="relative">
+                 <div className="w-1 h-5 bg-gradient-to-br from-rose-700 to-cyan-500 rounded-full"></div>
+                {/* Pulse effect */}
+                {!loading && projects.length > 0 && (
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-rose-500 to-cyan-600 animate-ping opacity-20"></div>
+                )}
+              </div>
+              <div>
+                
+                <p className="font-third text-m font-bold text-slate-900 tracking-tight">
+                  Project Status
+                </p>
+                
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1.5 bg-gradient-to-br from-rose-100 to-cyan-100 border border-rose-200/50 rounded-full text-xs font-bold text-slate-700 ">
+                {projects.length} total
+              </span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="relative">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-rose-500 animate-spin"></div>
+                  <p className="text-sm text-slate-500 font-medium">
+                    Loading projects...
                   </p>
                 </div>
               </div>
-            </div>
-            <ol className="space-y-3 text-xs text-slate-500">
-              <li className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
-                  1
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    Create a project in Recommender Studio
-                  </p>
-                  <p>
-                    Upload your content and/or interaction CSVs, map the schema,
-                    and let AiREC train content, collaborative, or hybrid models for you.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
-                  2
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    Register an external app in the Webhook Dashboard
-                  </p>
-                  <p>
-                    Generate scoped API keys, point AiREC at your webhook URL, and keep
-                    your clients decoupled from the ML backend.
-                  </p>
-                </div>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
-                  3
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
-                    Monitor traffic and usage
-                  </p>
-                  <p>
-                    Use Analytics and Billing to understand how recommendations are
-                    being consumed and keep an eye on quotas.
-                  </p>
-                </div>
-              </li>
-            </ol>
-            <div className="flex flex-wrap gap-3 pt-1">
-              <button
-                onClick={() => onNavigate("recommender")}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 text-slate-950 shadow-md shadow-cyan-500/40 hover:shadow-lg hover:-translate-y-[1px] transition-all"
-              >
-                <Activity className="w-4 h-4" />
-                <span>Open Recommender Studio</span>
-              </button>
-              <button
-                onClick={() => onNavigate("recommender")}
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-              >
-                Create your first project →
-              </button>
-            </div>
-          
+            ) : projects.length > 0 ? (
+              <div className="space-y-2.5">
+                {projects.slice(0, 5).map((project, index) => (
+                  <div
+                    key={project.id}
+                    className="animate-slideIn"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <ProjectActivityItem
+                      project={project}
+                      onClick={() => handleProjectClick(project)}
+                    />
+                  </div>
+                ))}
+                {projects.length > 5 && (
+                  <button
+                    onClick={() => onNavigate("recommender")}
+                    className="group w-full mt-4 relative overflow-hidden bg-gradient-to-r from-rose-50 to-cyan-50 hover:from-rose-100 hover:to-cyan-100 border-2 border-dashed border-slate-300"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-rose-500/0 via-cyan-500/5 to-rose-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <div className="relative flex items-center justify-center gap-2">
+                      <span className="text-sm font-bold bg-gradient-to-br from-rose-600 to-cyan-600 bg-clip-text text-transparent">
+                        View all {projects.length} projects
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-rose-600 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                
+                <p className="text-sm text-slate-500 font-third mb-4">
+                  No projects yet
+                </p>
+                <button
+                  onClick={() => onNavigate("recommender")}
+                  className="group relative inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-rose-600 to-cyan-600 hover:from-rose-700 hover:to-cyan-700 text-white font-third text-sm rounded-3xl cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] "></div>
+                 
+                  <span className="relative z-10">
+                    Create your first project
+                  </span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* QUICK ACTIONS */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-semibold mb-4">Quick Actions</p>
-          <div className="grid grid-cols-1 gap-3">
+        <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-gradient-to-b from-rose-700 to-cyan-500 rounded-full"></div>
+              <p className="text-m font-semibold text-slate-900 ">
+                Quick Actions
+              </p>
+            </div>
+           
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 font-third">
             <QuickActionCard
               title="Create Project"
               description="Train a new recommender model"
               Icon={Zap}
               onClick={() => onNavigate("recommender")}
+              gradient="from-rose-700 to-cyan-600"
+              hoverGradient="from-rose-800 to-cyan-900"
             />
             <QuickActionCard
               title="Register App"
               description="Generate API keys & webhook"
               Icon={Webhook}
               onClick={() => onNavigate("dashboard")}
+              gradient="from-rose-700 to-cyan-600"
+              hoverGradient="from-rose-800 to-cyan-900"
             />
             <QuickActionCard
               title="View Analytics"
               description="Inspect usage and traffic trends"
               Icon={BarChart3}
               onClick={() => onNavigate("analytics")}
+              gradient="from-rose-700 to-cyan-600"
+              hoverGradient="from-rose-800 to-cyan-900"
             />
           </div>
         </div>
       </div>
 
-        <div className="space-y-4">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/80 p-5 space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-2xl bg-slate-900 flex items-center justify-center text-slate-50">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-                <div className="leading-tight">
-                  <p className="text-xs font-semibold text-slate-500">
-                    Workspace snapshot
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    Live usage from your APIs
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 text-xs">
-              <div className="space-y-1">
-                <p className="text-slate-500">Total requests</p>
-                <p className="text-xl font-bold text-slate-900">
-                  {loading ? "—" : totalRequests}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-slate-500">Projects live</p>
-                <p className="text-xl font-bold text-slate-900">
-                  {loading ? "—" : readyProjects}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-slate-500">Registered apps</p>
-                <p className="text-xl font-bold text-slate-900">
-                  {loading ? "—" : appsCount}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-slate-900 text-slate-50 rounded-3xl border border-slate-800 p-5 flex items-start gap-3">
-            <div className="mt-1">
-              <ShieldCheck className="w-5 h-5 text-emerald-300" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Secure by default</p>
-              <p className="text-xs text-slate-400">
-                Each project and webhook app is scoped to your account via JWT, so
-                you can safely run multiple tenants from the same backend without
-                leaking data across workspaces.
-              </p>
-            </div>
-          </div>
+      {/* WORKSPACE SUMMARY */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg mt-6">
+        <p className="text-sm font-semibold font-third mb-6 text-slate-200">
+          Workspace Summary
+        </p>
+        <div className="grid grid-cols-3 gap-6">
+          <SummaryItemPro
+            label="Active Projects"
+            value={loading ? "—" : projects.length}
+            subtitle={`${readyProjects} ready`}
+          />
+          <SummaryItemPro
+            label="Registered Apps"
+            value={loading ? "—" : apps.length}
+            subtitle={`${activeApps} active`}
+          />
+          <SummaryItemPro
+            label="Total Requests"
+            value={loading ? "—" : totalRequests.toLocaleString()}
+            subtitle="All-time"
+          />
         </div>
       </div>
     </ShellSection>
+  );
+};
+
+const StatusCard = ({ name, status = "checking", endpoint, latency }) => {
+  const statusConfig = {
+    ok: {
+      badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+      dot: "bg-emerald-300",
+      text: "Operational",
+    },
+    degraded: {
+      badge: "bg-amber-100 text-amber-700 border border-amber-200",
+      dot: "bg-amber-300",
+      text: "Degraded",
+    },
+    checking: {
+      badge: "bg-slate-100 text-slate-700 border border-slate-200",
+      dot: "bg-slate-300 animate-pulse",
+      text: "Checking...",
+    },
+  };
+
+  const config = statusConfig[status] || statusConfig.checking;
+
+  return (
+    <div className="bg-white rounded-lg border-b-rose-200 border-b-1  border-t-cyan-200 border-t-1 border-slate-100 p-5 ">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-semibold text-slate-900">{name}</span>
+        <span
+          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${config.badge}`}
+        >
+          {config.text}
+        </span>
+      </div>
+      <div className="flex items-center justify-between text-[11px] text-slate-500">
+        <div className="flex items-center gap-2 truncate flex-1">
+          <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+          <span className="truncate">{endpoint}</span>
+        </div>
+        {latency && status !== "checking" && (
+          <span
+            className={`ml-2 font-semibold whitespace-nowrap ${
+              status === "ok" ? "text-emerald-600" : "text-red-600"
+            }`}
+          >
+            {latency}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ProjectActivityItem = ({ project, onClick }) => {
+  const statusConfig = {
+    ready: {
+      color: "from-emerald-500 to-emerald-600",
+      text: "Ready",
+      bgClass: "bg-emerald-50 text-emerald-700 ",
+      icon: "✓",
+    },
+    training: {
+      color: "from-blue-500 to-blue-600",
+      text: "Training",
+      bgClass: "bg-blue-50 text-blue-700 ",
+      icon: "↻",
+    },
+    failed: {
+      color: "from-red-500 to-red-600",
+      text: "Failed",
+      bgClass: "bg-red-50 text-red-700 ",
+      icon: "✕",
+    },
+    pending: {
+      color: "from-amber-900 to-rose-200",
+      text: "Pending",
+      bgClass: "bg-rose-50 text-amber-900 ",
+      icon: "⋯",
+    },
+  };
+
+  const config = statusConfig[project.status] || statusConfig.pending;
+
+  return (
+    <div
+      onClick={onClick}
+      className="group relative overflow-hidden bg-white hover:bg-gradient-to-r hover:from-rose-50/50 hover:to-cyan-50/50 border-1 border-slate-200  rounded-3xl p-4 transition-all cursor-pointer hover:shadow-sm "
+    >
+      
+
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+
+      <div className="relative flex items-center gap-3">
+        {/* Status indicator with icon */}
+        <div className="relative flex-shrink-0">
+        
+          {project.status === "training" && (
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-cyan -500 to-blue-600 animate-ping opacity-30"></div>
+          )}
+        </div>
+
+        {/* Project info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 font-third">
+            <h4 className="text-sm font-bold text-slate-900   truncate">
+              {project.name || project.project_name || "Unnamed Project"}
+            </h4>
+            <ArrowRight className="w-3.5 h-3.5 text-slate-800 flex-shrink-0" />
+          </div>
+          <p className="text-xs text-slate-500 font-mono">
+            ID: {project.id || project.project_id || "N/A"}
+          </p>
+        </div>
+
+        {/* Status badge */}
+        <div
+          className={`px-3 py-1.5 font-third text-xs font-bold `}
+        >
+          {config.text}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SummaryItemPro = ({ label, value, subtitle }) => (
+  <div className="text-center">
+    <p className="text-3xl font-bold text-white mb-1">{value}</p>
+    <p className="text-xs text-slate-400 mb-2">{label}</p>
+    <span className="text-[10px] text-slate-500">{subtitle}</span>
+  </div>
+);
+
+const QuickActionCard = ({
+  title,
+  description,
+  Icon,
+  onClick,
+  gradient = "from-cyan-500 to-rose-600",
+  hoverGradient = "from-indigo-600 to-indigo-700",
+}) => {
+  return (
+    <div
+      onClick={onClick}
+      className="group relative overflow-hidden bg-white border-2 border-slate-200 rounded-3xl hover:border-transparent transition-all cursor-pointer hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+    >
+      {/* Animated background gradient on hover */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+      ></div>
+
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+
+      {/* Content */}
+      <div className="relative flex items-center gap-4 p-4">
+        {/* Icon container with animation */}
+        <div
+          className={`relative p-3 bg-gradient-to-br ${gradient} rounded-3xl shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 flex-shrink-0`}
+        >
+          <Icon className="w-5 h-5 text-white rounded-xl relative z-10" />
+          {/* Pulse ring effect */}
+          <div className="absolute inset-0 rounded-3xl bg-white opacity-0 group-hover:opacity-20 group-hover:scale-150 transition-all duration-500"></div>
+        </div>
+
+        {/* Text content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-sm font-bold text-slate-900 group-hover:text-white transition-colors duration-300 truncate">
+              {title}
+            </h3>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
+          </div>
+          <p className="text-xs text-slate-600 group-hover:text-white/90 transition-colors duration-300 line-clamp-1">
+            {description}
+          </p>
+        </div>
+      </div>
+
+      {/* Corner accent */}
+      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/0 to-white/5 transform rotate-45 translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500"></div>
+    </div>
   );
 };
 
@@ -393,11 +627,17 @@ const AnalyticsView = ({ summary }) => {
   console.log("Analytics Debug:", { usage, totalRequests, apps, loading }); // Debug log
 
   // Calculate real metrics from DB
-  const topApp = usage.length > 0 
-    ? usage.reduce((max, app) => (app.usage_count || 0) > (max.usage_count || 0) ? app : max, usage[0])
-    : null;
+  const topApp =
+    usage.length > 0
+      ? usage.reduce(
+          (max, app) =>
+            (app.usage_count || 0) > (max.usage_count || 0) ? app : max,
+          usage[0],
+        )
+      : null;
 
-  const avgRequestsPerApp = apps.length > 0 ? Math.floor(totalRequests / apps.length) : 0;
+  const avgRequestsPerApp =
+    apps.length > 0 ? Math.floor(totalRequests / apps.length) : 0;
 
   return (
     <ShellSection
@@ -405,128 +645,257 @@ const AnalyticsView = ({ summary }) => {
       title="Usage Analytics"
       description="Traffic trends, application performance, and infrastructure insights from your database."
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs mb-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          <span className="font-medium text-slate-700">
-            Environment: <span className="font-semibold">Development</span>
-          </span>
-        </div>
-        <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1 py-0.5">
-          {["24h", "7d", "30d"].map((label) => {
-            const active = label === "7d";
-            return (
-              <button
-                key={label}
-                className={`px-3 py-1 rounded-full font-medium ${
-                  active
-                    ? "bg-slate-900 text-slate-50"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
+      {/* KEY METRICS FROM DB */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <MetricCard
+          label="Total Requests"
+          value={loading ? "—" : totalRequests.toLocaleString()}
+          change="All-time webhook calls"
+        />
+        <MetricCard
+          label="Registered Apps"
+          value={loading ? "—" : apps.length}
+          change={`${usage.length} with usage data`}
+        />
+        <MetricCard
+          label="Avg per App"
+          value={loading ? "—" : avgRequestsPerApp.toLocaleString()}
+          change="Request distribution"
+        />
+        <MetricCard
+          label="Top Performer"
+          value={
+            loading
+              ? "—"
+              : topApp
+                ? topApp.app_name?.substring(0, 12) +
+                  (topApp.app_name?.length > 12 ? "..." : "")
+                : "N/A"
+          }
+          change={
+            topApp
+              ? `${(topApp.usage_count || 0).toLocaleString()} requests`
+              : "No data"
+          }
+        />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
-          <p className="text-xs font-semibold text-slate-500">
-            Total requests
-          </p>
-          <p className="text-2xl font-bold text-slate-900">
-            {loading ? "—" : totalRequests}
-          </p>
-          <p className="text-[11px] text-slate-500">
-            Aggregated from webhook usage table
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
-          <p className="text-xs font-semibold text-slate-500">
-            Active webhook apps
-          </p>
-          <p className="text-2xl font-bold text-slate-900">
-            {loading ? "—" : apps.length}
-          </p>
-          <p className="text-[11px] text-slate-500">
-            Based on apps registered in the webhooks service
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
-          <p className="text-xs font-semibold text-slate-500">
-            Apps with traffic
-          </p>
-          <p className="text-2xl font-bold text-slate-900">
-            {loading ? "—" : usage.length}
-          </p>
-          <p className="text-[11px] text-slate-500">
-            Number of apps present in the usage table
-          </p>
-        </div>
-      </div>
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
-          <p className="text-xs font-semibold text-slate-500">
-            Requests per app
-          </p>
-          <div className="space-y-2 text-xs">
-            {!loading && perAppPercentages.length === 0 && (
-              <p className="text-slate-500">
-                No usage records yet. Once your apps start calling the recommend
-                endpoint, you&apos;ll see their distribution here.
-              </p>
-            )}
-            {perAppPercentages.map((row) => (
-              <div key={row.app_name}>
-                <div className="flex justify-between mb-1">
-                  <span className="text-slate-700">{row.app_name}</span>
-                  <span className="text-slate-500">{row.percent}%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400"
-                    style={{ width: `${row.percent}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+
+      {/* USAGE VISUALIZATION */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">
+              Request Distribution by App
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Based on webhooks.usage table
+            </p>
+          </div>
+          <div className="text-xs text-slate-500">
+            {totalRequests.toLocaleString()} total
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
-          <p className="text-xs font-semibold text-slate-500">
-            Top apps by traffic
-          </p>
-          <ul className="space-y-2 text-xs">
-            {loading && <li className="text-slate-500">Loading usage…</li>}
-            {!loading &&
-              usage
-                .slice()
-                .sort(
-                  (a, b) => (b.usage_count || 0) - (a.usage_count || 0)
-                )
-                .slice(0, 5)
-                .map((u) => (
-                  <li
-                    key={u.app_name}
-                    className="flex justify-between border-b border-slate-100 pb-1 last:border-0"
-                  >
-                    <span className="text-slate-700">{u.app_name}</span>
-                    <span className="font-semibold text-slate-900">
-                      {u.usage_count || 0}
-                    </span>
-                  </li>
-                ))}
-            {!loading && usage.length === 0 && (
-              <li className="text-slate-500">
-                No usage yet. Make requests via the `/api/recommend` endpoint to
-                populate these stats.
-              </li>
-            )}
-          </ul>
-          <p className="text-[11px] text-slate-500">
-            All values are computed from the `webhooks.usage` table.
-          </p>
+
+        {loading ? (
+          <div className="text-center py-12 text-slate-400 text-xs">
+            Loading usage data...
+          </div>
+        ) : usage.length > 0 ? (
+          <div className="flex items-end justify-between gap-3 h-56">
+            {usage.map((app, i) => {
+              const maxUsage = Math.max(
+                ...usage.map((u) => u.usage_count || 0),
+              );
+              const height =
+                maxUsage > 0 ? ((app.usage_count || 0) / maxUsage) * 100 : 5;
+              const percent =
+                totalRequests > 0
+                  ? Math.round(((app.usage_count || 0) / totalRequests) * 100)
+                  : 0;
+
+              return (
+                <div
+                  key={app.app_name || i}
+                  className="flex-1 flex flex-col items-center gap-2"
+                >
+                  <div className="w-full relative group">
+                    <div
+                      className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 via-teal-500 to-green-400 transition-all duration-300 hover:from-emerald-700 hover:via-teal-600 cursor-pointer shadow-sm"
+                      style={{ height: `${height}%`, minHeight: "20px" }}
+                    />
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-lg text-xs whitespace-nowrap">
+                        <p className="font-semibold">
+                          {(app.usage_count || 0).toLocaleString()} requests
+                        </p>
+                        <p className="text-slate-400 text-[10px]">
+                          {app.app_name}
+                        </p>
+                        <p className="text-slate-400 text-[10px]">
+                          {percent}% of total
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center w-full">
+                    <p
+                      className="text-[10px] font-semibold text-slate-900 truncate px-1"
+                      title={app.app_name}
+                    >
+                      {app.app_name && app.app_name.length > 8
+                        ? app.app_name.substring(0, 8) + "..."
+                        : app.app_name || "N/A"}
+                    </p>
+                    <p className="text-[9px] font-semibold text-emerald-600">
+                      {percent}%
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-sm text-slate-400 mb-3">
+              No usage data available
+            </p>
+            <p className="text-xs text-slate-500">
+              Register apps and start making requests to see analytics
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* LOWER SECTION */}
+      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        {/* DISTRIBUTION TABLE */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold">Traffic Distribution</p>
+            <span className="text-xs text-slate-500">By application</span>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              Loading...
+            </div>
+          ) : usage.length > 0 ? (
+            <div className="space-y-4">
+              {usage.map((u) => {
+                const percent =
+                  totalRequests > 0
+                    ? Math.round(((u.usage_count || 0) / totalRequests) * 100)
+                    : 0;
+
+                return (
+                  <div key={u.app_name}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold text-slate-900 truncate pr-2">
+                        {u.app_name}
+                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs text-slate-500">
+                          {(u.usage_count || 0).toLocaleString()}
+                        </span>
+                        <span className="text-xs font-bold text-slate-900">
+                          {percent}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              No usage data available
+            </div>
+          )}
+        </div>
+
+        {/* TOP APPS TABLE */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold">Top Applications</p>
+            <span className="text-xs text-slate-500">By request volume</span>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              Loading...
+            </div>
+          ) : usage.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="border-b border-slate-200">
+                  <tr>
+                    <th className="text-left pb-3 font-semibold text-slate-500">
+                      Rank
+                    </th>
+                    <th className="text-left pb-3 font-semibold text-slate-500">
+                      Application
+                    </th>
+                    <th className="text-right pb-3 font-semibold text-slate-500">
+                      Requests
+                    </th>
+                    <th className="text-right pb-3 font-semibold text-slate-500">
+                      Share
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usage
+                    .slice()
+                    .sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0))
+                    .map((u, idx) => {
+                      const percent =
+                        totalRequests > 0
+                          ? Math.round(
+                              ((u.usage_count || 0) / totalRequests) * 100,
+                            )
+                          : 0;
+                      return (
+                        <tr
+                          key={u.app_name || idx}
+                          className="border-b border-slate-100 hover:bg-emerald-50 transition-colors"
+                        >
+                          <td className="py-3">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">
+                              {idx + 1}
+                            </span>
+                          </td>
+                          <td
+                            className="py-3 font-semibold text-slate-900 truncate max-w-[150px]"
+                            title={u.app_name}
+                          >
+                            {u.app_name}
+                          </td>
+                          <td className="text-right font-semibold text-slate-900">
+                            {(u.usage_count || 0).toLocaleString()}
+                          </td>
+                          <td className="text-right">
+                            <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                              {percent}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              No usage data available
+            </div>
+          )}
         </div>
       </div>
     </ShellSection>
@@ -541,8 +910,6 @@ const MetricCard = ({ label, value, change }) => (
   </div>
 );
 
-
-
 const Card = ({ label, value }) => (
   <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
     <p className="text-xs text-slate-500">{label}</p>
@@ -551,7 +918,6 @@ const Card = ({ label, value }) => (
     </p>
   </div>
 );
-
 
 const BillingView = ({ summary }) => {
   const { totalRequests, loading } = summary;
@@ -884,106 +1250,113 @@ export default function AppShell() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-100 via-slate-100 to-neutral-100">
+    <div className="min-h-screen bg-gradient-to-b from-neutral-800 via-slate-100 to-neutral-100">
       <div className="flex min-h-screen">
         {/* Sidebar */}
-<aside 
-  className={`fixed left-0 top-0 bg-white border-r border-gray-200 flex flex-col h-screen transition-all duration-300 z-50 ${
-    isSidebarOpen ? 'w-[280px]' : 'w-[72px]'
-  }`}
-  onMouseEnter={() => !isSidebarOpen && setIsSidebarOpen(true)}
-  onMouseLeave={() => isSidebarOpen && setIsSidebarOpen(false)}
->
-  <style jsx>{`
-    .scrollbar-hide::-webkit-scrollbar {
-      display: none;
-    }
-    .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  `}</style>
-  
-  <div className="h-full flex flex-col">
-    {/* Brand Header */}
-    <div className="px-6 py-5 border-b border-gray-200 flex-shrink-0">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-rose-900 to-cyan-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-          <Layers className="w-6 h-6 text-white" />
-        </div>
-        {isSidebarOpen && (
-          <h1 className="text-xl font-bold text-gray-900 whitespace-nowrap">
-            BaaS Studio
-          </h1>
-        )}
-      </div>
-    </div>
+        <aside
+          className={`fixed left-0 top-0 bg-white border-r  rounded-r-3xl border-gray-200 flex flex-col shadow-sm h-screen transition-all duration-300 z-50 ${
+            isSidebarOpen ? "w-[280px]" : "w-[72px]"
+          }`}
+          onMouseEnter={() => !isSidebarOpen && setIsSidebarOpen(true)}
+          onMouseLeave={() => isSidebarOpen && setIsSidebarOpen(false)}
+        >
+          {/* <style jsx>{`
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-hide {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}</style> */}
 
-    {/* Navigation - Scrollable */}
-    <nav className="flex-1 overflow-y-auto py-5 px-4 scrollbar-hide">
-      <div className="space-y-1.5">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className="group w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200"
-              title={!isSidebarOpen ? item.label : ''}
-            >
-              <span
-                className={`inline-flex items-center justify-center rounded-lg w-9 h-9 flex-shrink-0 transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-br from-rose-700 to-cyan-500 text-white shadow-sm"
-                    : "bg-gray-100 text-gray-600 group-hover:bg-gradient-to-br group-hover:from-rose-700 group-hover:to-cyan-500 group-hover:text-white"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-              </span>
-
-              {isSidebarOpen && (
-                <div className="flex-1 min-w-0 text-left">
-                  <p className={`text-sm font-semibold truncate transition-colors duration-200 ${
-                    isActive ? "text-gray-900" : "text-gray-600 group-hover:text-gray-900"
-                  }`}>
-                    {item.label}
-                  </p>
-                  <p className="text-[11px] text-gray-500 truncate">
-                    {item.description}
-                  </p>
+          <div className="h-full flex flex-col">
+            {/* Brand Header */}
+            <div className="px-6 py-5 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-rose-900 to-cyan-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                  <Layers className="w-6 h-6 text-white" />
                 </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </nav>
-
-    {/* Footer / Sign out - Sticky at bottom */}
-    <div className="px-4 py-4 border-t border-gray-200 bg-red-50/30 flex-shrink-0">
-      <button
-        onClick={handleLogout}
-        className="group w-full px-3 py-3 rounded-xl text-sm font-medium flex items-center transition-all hover:bg-red-50 border border-transparent hover:border-red-200"
-        title="Sign out"
-      >
-        <span className="flex items-center gap-3 w-full">
-          <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-100 group-hover:bg-red-500 flex-shrink-0 transition-all duration-200">
-            <LogOut className="w-5 h-5 text-red-600 group-hover:text-white transition-colors duration-200" />
-          </span>
-          {isSidebarOpen && (
-            <div className="flex items-center justify-between w-full">
-              <span className="font-semibold text-red-600 group-hover:text-red-700">Sign out</span>
-              <span className="text-[10px] uppercase tracking-wide text-red-400 font-semibold">
-                Secure exit
-              </span>
+                {isSidebarOpen && (
+                  <h1 className="text-xl font-bold font-main text-gray-900 whitespace-nowrap cursor-pointer">
+                    BaaS Studio
+                  </h1>
+                )}
+              </div>
             </div>
-          )}
-        </span>
-      </button>
-    </div>
-  </div>
-</aside>
+
+            {/* Navigation - Scrollable */}
+            <nav className="flex-1 overflow-y-auto py-5 px-4 scrollbar-hide">
+              <div className="space-y-1.5">
+                {NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      
+                      className="group w-full flex items-center gap-3 px-3 py-4 rounded-3xl transition-all duration-200 hover:shadow-rose-100 hover:shadow-sm cursor-pointer "
+                      title={!isSidebarOpen ? item.label : ""}
+                    >
+                      <span
+                        className={`inline-flex items-center justify-center rounded-3xl w-9 h-9 flex-shrink-0 transition-all duration-200 ${
+                          isActive
+                            ? "bg-gradient-to-br from-rose-900 to-cyan-200 text-white shadow-sm"
+                            : "bg-gray-100 text-gray-600 group-hover:bg-gradient-to-br group-hover:from-rose-800 group-hover:to-cyan-200 group-hover:text-white"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </span>
+
+                      {isSidebarOpen && (
+                        <div className="flex-1 min-w-0 text-left">
+                          
+                          <p
+                            className={`text-sm font-semibold font-third truncate transition-colors duration-200 ${
+                              isActive
+                                ? "text-gray-900"
+                                : "text-gray-600 group-hover:text-gray-900"
+                            }`}
+                          >
+                            {item.label}
+                          </p>
+                          <p className="text-[11px] font-sec text-gray-500 truncate">
+                            {item.description}
+                          </p>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+
+            {/* Footer / Sign out - Sticky at bottom */}
+            <div className="px-4 py-4 border-t border-gray-200 bg-red-50/30 flex-shrink-0">
+              <button
+                onClick={handleLogout}
+                className="group w-full px-3 py-3 rounded-xl text-sm font-medium flex items-center transition-all hover:bg-red-50 border border-transparent hover:border-red-200"
+                title="Sign out"
+              >
+                <span className="flex items-center gap-3 w-full">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-red-100 group-hover:bg-red-500 flex-shrink-0 transition-all duration-200">
+                    <LogOut className="w-5 h-5 text-rose-800 group-hover:text-white transition-colors duration-200" />
+                  </span>
+                  {isSidebarOpen && (
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-semibold font-third text-rose-600 group-hover:text-red-700">
+                        Sign out
+                      </span>
+                      
+                    </div>
+                  )}
+                </span>
+              </button>
+            </div>
+          </div>
+        </aside>
 
         {/* Main content */}
         <main className="flex-1 bg-gradient-to-br from-neutral-50 via-slate-50 to-neutral-100 overflow-y-auto">
