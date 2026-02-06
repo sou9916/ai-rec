@@ -60,7 +60,7 @@ async def notify_webhooks(event_type: str, payload: dict):
 os.makedirs("user_uploads", exist_ok=True)
 os.makedirs("mlflow_artifacts", exist_ok=True)
 
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", os.getenv("DATABASE_URL", "postgresql://localhost:5432/neondb"))
+MLFLOW_TRACKING_URI = "file:./mlruns"
 MLFLOW_ARTIFACT_LOCATION = os.getenv("MLFLOW_ARTIFACT_LOCATION", "./mlflow_artifacts")
 os.environ["MLFLOW_TRACKING_URI"] = MLFLOW_TRACKING_URI
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
