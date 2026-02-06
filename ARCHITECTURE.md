@@ -66,7 +66,7 @@ This document describes the end-to-end architecture, data flow, and design of th
 
 ## 3. Database Design (PostgreSQL)
 
-One database is used with **three schemas** (created once via `scripts/init-neon-schemas.mjs`).
+One database is used with **three schemas** (created once via `scripts/init-neon-schemas.mjs`). **Auth** and **Webhooks** use Drizzle ORM; **back2** uses SQLAlchemy.
 
 ### 3.1 Schema: `auth`
 - **users**: id, name, email, password (bcrypt), created_at. Used for login/signup and JWT.
@@ -149,7 +149,7 @@ Files are stored on disk under `backend/back2/user_uploads/`. MLflow stores arti
 |------|--------|
 | `backend/auth/` | Auth API (signup, login, JWT), uses `auth` schema. |
 | `backend/back2/` | FastAPI app (saas_api.py), DB (database.py), models (models.py), ML (Content.py, Collaborative.py, Hybrid.py, dynamic_recommender.py), MLflow. Uses `recommender` schema and local `user_uploads/`. |
-| `backend/webhooks_services/` | Express app (server.js), routes (apps, recommend, webhooks), DB (webhookdb.js → `webhooks` schema). Proxies recommend to FastAPI. |
+| `backend/webhooks_services/` | Express app (server.js), routes (apps, recommend, webhooks), DB via Drizzle (`db/index.js`, `webhooks` schema). Proxies recommend to FastAPI. |
 | `frontend/s/` | React app: auth context, login/signup, protected app shell, Dashboard (Recommender Studio + Webhook Dashboard). |
 | `xternal_client/MovieRec/` | Demo client: hardcoded API_KEY and PROJECT in app.js; POSTs to Webhooks `/api/recommend`. |
 | `scripts/init-neon-schemas.mjs` | One-time creation of schemas auth, webhooks, recommender. |

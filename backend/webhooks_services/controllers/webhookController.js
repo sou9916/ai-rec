@@ -1,5 +1,6 @@
 import axios from "axios";
-import db from "../db/webhookdb.js";
+import { db } from "../db/index.js";
+import { apps } from "../db/schema.js";
 
 export const registerWebhook = async (req, res) => {
   try {
@@ -7,9 +8,11 @@ export const registerWebhook = async (req, res) => {
     if (!app_name || !webhook_url)
       return res.status(400).json({ error: "Missing app_name or webhook_url" });
 
-    // Use the centralized apps table
-    const result = await db.run("INSERT INTO webhooks.apps (app_name, webhook_url) VALUES ($1, $2) RETURNING id", [app_name, webhook_url]);
-    res.json({ id: result.lastID, message: "Webhook registered successfully" });
+    const [row] = await db
+      .insert(apps)
+      .values({ app_name, webhook_url })
+      .returning({ id: apps.id });
+    res.json({ id: row?.id ?? null, message: "Webhook registered successfully" });
   } catch (err) {
     console.error("registerWebhook error:", err);
     res.status(500).json({ error: err.message });
@@ -18,7 +21,7 @@ export const registerWebhook = async (req, res) => {
 
 export const listWebhooks = async (req, res) => {
   try {
-    const rows = await db.all("SELECT * FROM webhooks.apps", []);
+    const rows = await db.select().from(apps);
     res.json(rows);
   } catch (err) {
     console.error("listWebhooks error:", err);
@@ -29,7 +32,7 @@ export const listWebhooks = async (req, res) => {
 export const triggerWebhooks = async (req, res) => {
   try {
     const { event, data } = req.body;
-    const rows = await db.all("SELECT webhook_url FROM webhooks.apps", []);
+    const rows = await db.select({ webhook_url: apps.webhook_url }).from(apps);
 
     const results = [];
     for (const { webhook_url } of rows) {

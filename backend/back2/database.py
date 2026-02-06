@@ -41,3 +41,13 @@ def create_db_and_tables():
             conn.execute(text("CREATE SCHEMA IF NOT EXISTS recommender"))
             conn.commit()
     Base.metadata.create_all(bind=engine)
+    # Add owner_id to recommender_projects if missing (existing deployments)
+    if DATABASE_URL.startswith("postgresql"):
+        with engine.connect() as conn:
+            conn.execute(text("""
+                DO $$ BEGIN
+                    ALTER TABLE recommender.recommender_projects ADD COLUMN owner_id INTEGER;
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+            """))
+            conn.commit()

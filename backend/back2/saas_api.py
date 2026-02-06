@@ -9,10 +9,12 @@ import json
 import asyncio
 import mlflow
 import pickle
-import numpy as np  # <-- Add this import
+import numpy as np
 import tempfile
-from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, BackgroundTasks
+import jwt
+from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, BackgroundTasks, Header
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
 from typing import List, Optional, Dict
@@ -84,12 +86,13 @@ if not experiment:
 # Set the experiment as the active one for all runs
 mlflow.set_experiment("recommender_projects")
 # --- END MLFLOW CONFIG ---
-# --- END MLFLOW CONFIG ---
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Server starting...")
-    database.create_db_and_tables() 
+    if not os.getenv("JWT_SECRET"):
+        print("WARNING: JWT_SECRET not set in backend/back2/.env. Set it (same value as auth service) or project list will return 500 and users will see no projects.")
+    database.create_db_and_tables()
     print("Database tables created.")
     yield
     print("Server shutting down.")
@@ -102,6 +105,60 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Auth: JWT from auth service, or X-Internal-Key for server-to-server (webhook service) ---
+BACK2_INTERNAL_KEY = os.getenv("BACK2_INTERNAL_KEY", "")
+
+def get_current_user_id(
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_internal_key: Optional[str] = Header(None, alias="X-Internal-Key"),
+) -> int:
+    # Server-to-server: webhook service calls with X-Internal-Key to get recommendations without user JWT
+    if BACK2_INTERNAL_KEY and x_internal_key and x_internal_key.strip() == BACK2_INTERNAL_KEY:
+        return -1
+    secret = os.getenv("JWT_SECRET")
+    if not secret:
+        raise HTTPException(
+            status_code=500,
+            detail="JWT_SECRET not configured. Set it in backend/back2/.env (same value as auth service) for user-wise projects.",
+        )
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    token = authorization[7:].strip()
+    try:
+        payload = jwt.decode(token, secret, algorithms=["HS256"])
+        user_id = payload.get("id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return int(user_id)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+def get_next_project_id(db: Session) -> int:
+    """Return the smallest positive integer not used as project id (reuse deleted ids)."""
+    used = {row[0] for row in db.query(models.RecommenderProject.id).all()}
+    candidate = 1
+    while candidate in used:
+        candidate += 1
+    return candidate
+
+
+def get_project_for_user(project_id: int, user_id: int, db: Session):
+    """Return project only if it belongs to user (or legacy owner_id 0/None, or service user -1); else 404."""
+    db_project = db.query(models.RecommenderProject).filter(
+        models.RecommenderProject.id == project_id
+    ).first()
+    if not db_project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    if user_id == -1:
+        return db_project  # internal key (webhook service)
+    if db_project.owner_id is None or db_project.owner_id == 0:
+        return db_project  # legacy: any authenticated user can access
+    if db_project.owner_id != user_id:
+        raise HTTPException(status_code=404, detail="Project not found.")
+    return db_project
 
 # --- Helper function (Unchanged) ---
 async def save_file_and_schema(
@@ -182,8 +239,8 @@ async def process_project(project_id: int, db: Session):
         
         if content_file:
             df_content = pd.read_csv(content_file.storage_path)
-            content_schema = {s.app_schema_key: s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key != 'feature_col'}
-            content_schema['feature_cols'] = [s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key == 'feature_col']
+            content_schema = {s.app_schema_key: s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key != 'feature_col' and (s.user_csv_column or '').strip()}
+            content_schema['feature_cols'] = [s.user_csv_column for s in content_file.schema_mappings if s.app_schema_key == 'feature_col' and (s.user_csv_column or '').strip()]
             all_schemas_map['content'] = content_schema
 
         if interaction_file:
@@ -215,6 +272,10 @@ async def process_project(project_id: int, db: Session):
             
             # --- Train Content-Based Model (Updated) ---
             if model_type in [models.ModelType.CONTENT, models.ModelType.HYBRID]:
+                if not content_schema.get('feature_cols'):
+                    raise ValueError("Content/Hybrid model requires at least one feature column mapped in the content file schema.")
+                if not content_schema.get('item_id') or not content_schema.get('item_title'):
+                    raise ValueError("Content schema must have both item_id and item_title mapped.")
                 print(f"[Task {project_id}]: Fitting ContentBasedRecommender...")
                 cb_recommender = ContentBasedRecommender()
                 cb_recommender.fit(df_content, content_schema)
@@ -258,8 +319,6 @@ async def process_project(project_id: int, db: Session):
                  print(f"[Task {project_id}]: Saved Content data for Collaborative title lookups.")
 
 
-            # --- Save and Register with MLflow (Unchanged) ---
-# --- Save and Register with MLflow (Corrected) ---
             with mlflow.start_run() as run:
                 print(f"[Task {project_id}]: MLflow run started: {run.info.run_id}")
                 mlflow.log_param("model_type", model_type)
@@ -302,29 +361,19 @@ async def process_project(project_id: int, db: Session):
             print(f"[Task {project_id}]: Failed to notify webhooks - {notify_err}")
 
     except Exception as e:
+        import traceback
         print(f"[Task {project_id}]: ERROR processing project. {e}")
+        traceback.print_exc()
         if db_project:
             db_project.status = models.ProjectStatus.ERROR
             db.commit()
     finally:
         db.close()
 
-# --- All API Endpoints (Unchanged) ---
-# The /create-project, /projects, /project/{id}/status,
-# /project/{id}/items, /project/{id}/users, and
-# /project/{id}/recommendations endpoints are all
-# IDENTICAL to the previous version. I am omitting them
-# here for brevity, but you should use the exact code
-# from the previous response for them.
-#
-# ... (all endpoints from saas_api.py go here) ...
-#
-
-# --- PASTE ALL OTHER ENDPOINTS FROM THE PREVIOUS RESPONSE BELOW ---
-
 @app.post("/create-project/", response_model=schemas.RecommenderProject)
 async def create_project(
     background_tasks: BackgroundTasks,
+    current_user_id: int = Depends(get_current_user_id),
     project_name: str = Form(...),
     content_file: UploadFile = File(None),
     content_schema_json: str = Form(None),
@@ -347,7 +396,10 @@ async def create_project(
     elif interaction_file:
         model_type = models.ModelType.COLLABORATIVE
 
+    next_id = get_next_project_id(db)
     db_project = models.RecommenderProject(
+        id=next_id,
+        owner_id=current_user_id,
         project_name=project_name,
         status=models.ProjectStatus.PENDING,
         model_type=model_type
@@ -374,21 +426,52 @@ async def create_project(
 
 
 @app.get("/projects/", response_model=List[schemas.RecommenderProject])
-def get_projects(db: Session = Depends(database.get_db)):
-    projects = db.query(models.RecommenderProject).all()
+def get_projects(
+    current_user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(database.get_db),
+):
+    if current_user_id == -1:
+        raise HTTPException(status_code=401, detail="Internal key cannot list projects.")
+    # Own projects + legacy (owner_id 0 or None) so re-login still sees previously created projects
+    projects = db.query(models.RecommenderProject).filter(
+        or_(
+            models.RecommenderProject.owner_id == current_user_id,
+            models.RecommenderProject.owner_id.is_(None),
+            models.RecommenderProject.owner_id == 0,
+        )
+    ).all()
     return projects
 
 @app.get("/project/{project_id}/status", response_model=schemas.RecommenderProject)
-def get_project_status(project_id: int, db: Session = Depends(database.get_db)):
-    db_project = db.query(models.RecommenderProject).filter(models.RecommenderProject.id == project_id).first()
-    if not db_project:
-        raise HTTPException(status_code=404, detail="Project not found.")
+def get_project_status(
+    project_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(database.get_db),
+):
+    db_project = get_project_for_user(project_id, current_user_id, db)
     return db_project
 
-def get_project_data(project_id: int, db: Session, file_type: models.FileType):
-    db_project = db.query(models.RecommenderProject).filter(models.RecommenderProject.id == project_id).first()
-    if not db_project:
-        raise HTTPException(status_code=404, detail="Project not found.")
+
+@app.delete("/project/{project_id}")
+def delete_project(
+    project_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(database.get_db),
+):
+    db_project = get_project_for_user(project_id, current_user_id, db)
+    for f in db_project.uploaded_files:
+        if f.storage_path and os.path.isfile(f.storage_path):
+            try:
+                os.remove(f.storage_path)
+            except OSError:
+                pass
+    db.delete(db_project)
+    db.commit()
+    return {"message": "Project deleted."}
+
+
+def get_project_data(project_id: int, user_id: int, db: Session, file_type: models.FileType):
+    db_project = get_project_for_user(project_id, user_id, db)
     if db_project.status != models.ProjectStatus.READY:
         raise HTTPException(status_code=400, detail="Project is not ready.")
     
@@ -400,25 +483,36 @@ def get_project_data(project_id: int, db: Session, file_type: models.FileType):
     schema = {s.app_schema_key: s.user_csv_column for s in file.schema_mappings}
     return df, schema
 
+# Max items/users returned for dropdowns (keeps response and UI fast)
+ITEMS_USERS_LIMIT = 2000
+
 @app.get("/project/{project_id}/items", response_model=List[schemas.ProjectItemResponse])
-def get_project_items(project_id: int, db: Session = Depends(database.get_db)):
+def get_project_items(
+    project_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(database.get_db),
+):
     try:
-        df, schema = get_project_data(project_id, db, models.FileType.CONTENT)
+        df, schema = get_project_data(project_id, current_user_id, db, models.FileType.CONTENT)
         id_col, title_col = schema['item_id'], schema['item_title']
-        # Ensure IDs are strings
         df[id_col] = df[id_col].astype(str)
-        items = df[[id_col, title_col]].drop_duplicates().to_dict('records')
-        return [{"id": item[id_col], "title": str(item[title_col])} for item in items]
+        items_df = df[[id_col, title_col]].drop_duplicates().head(ITEMS_USERS_LIMIT)
+        items = [{"id": str(row[id_col]), "title": str(row[title_col])} for row in items_df.to_dict("records")]
+        return items
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading items: {e}")
 
 @app.get("/project/{project_id}/users", response_model=List[schemas.ProjectUserResponse])
-def get_project_users(project_id: int, db: Session = Depends(database.get_db)):
+def get_project_users(
+    project_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(database.get_db),
+):
     try:
-        df, schema = get_project_data(project_id, db, models.FileType.INTERACTION)
+        df, schema = get_project_data(project_id, current_user_id, db, models.FileType.INTERACTION)
         user_col = schema['user_id']
-        users = df[user_col].drop_duplicates().astype(str).tolist()
-        return [{"id": user} for user in users]
+        users_series = df[user_col].drop_duplicates().astype(str).head(ITEMS_USERS_LIMIT)
+        return [{"id": u} for u in users_series.tolist()]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading users: {e}")
 
@@ -429,12 +523,10 @@ def get_recommendations(
     user_id: Optional[str] = None,
     item_title: Optional[str] = None,
     n: int = 10,
-    db: Session = Depends(database.get_db)
+    current_user_id: int = Depends(get_current_user_id),
+    db: Session = Depends(database.get_db),
 ):
-    db_project = db.query(models.RecommenderProject).filter(models.RecommenderProject.id == project_id).first()
-    
-    if not db_project:
-        raise HTTPException(status_code=404, detail="Project not found.")
+    db_project = get_project_for_user(project_id, current_user_id, db)
     if db_project.status != models.ProjectStatus.READY:
         raise HTTPException(status_code=400, detail=f"Project status is {db_project.status}.")
     if not db_project.mlflow_model_name:

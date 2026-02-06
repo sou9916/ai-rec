@@ -1,8 +1,8 @@
-# AiREC – Recommender as a Service
+# AiREC-BaaS
 
 A full-stack **recommendation platform** with ML models (content-based, collaborative, hybrid), webhook notifications, and auth. Upload datasets, train models, register external apps with API keys, and get recommendations via the web UI or REST API.
 
-**System design:** See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the complete flow, services, database schemas, and data flow.
+**System design:** See **[ARCHITECTURE.md](ARCHITECTURE.md)** for flows, services, database schemas, and data flow.
 
 ---
 
@@ -19,9 +19,9 @@ A full-stack **recommendation platform** with ML models (content-based, collabor
 ```
 ai-rec/
 ├── backend/
-│   ├── auth/              # Auth API (login, signup, JWT)
-│   ├── back2/             # FastAPI ML recommender + MLflow
-│   └── webhooks_services/ # App registration + webhooks + recommend proxy
+│   ├── auth/              # Auth API (login, signup, JWT); Drizzle ORM
+│   ├── back2/             # FastAPI ML recommender + MLflow; SQLAlchemy
+│   └── webhooks_services/ # App registration + webhooks + recommend proxy; Drizzle ORM
 ├── frontend/s/            # React (Vite) dashboard
 ├── xternal_client/        # Demo clients (MovieRec, MusicRec)
 ├── scripts/               # One-time DB schema setup (Neon)
@@ -47,18 +47,21 @@ JWT_SECRET=your-strong-secret-change-in-production
 ```env
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
 MLFLOW_TRACKING_URI=postgresql://user:pass@host:5432/dbname
+JWT_SECRET=your-strong-secret-change-in-production
+BACK2_INTERNAL_KEY=your-internal-key-for-webhook-service
 ```
 
-Use the same DB (or one with a `recommender` schema). Tables are created on startup.
+Use the same DB (or one with a `recommender` schema). Tables are created on startup. **`JWT_SECRET`** must match the auth service so the ML backend can verify JWTs and scope projects per user. **`BACK2_INTERNAL_KEY`** (optional): set the same value in the webhooks service so it can call the ML backend for recommendations without a user JWT.
 
 ### 3. Webhooks service (`backend/webhooks_services/.env`)
 
 ```env
 PORT=3001
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
+BACK2_INTERNAL_KEY=your-internal-key-for-webhook-service
 ```
 
-Optional: `FASTAPI_URL=http://localhost:8000` if the ML backend is on another host.
+**`BACK2_INTERNAL_KEY`** must match the value in `backend/back2/.env` so the webhook service can call the ML backend for recommendations. Optional: `FASTAPI_URL=http://localhost:8000` if the ML backend is on another host.
 
 ### 4. Frontend (optional)
 
@@ -72,9 +75,15 @@ Defaults in code: Auth `http://localhost:8080`, ML `http://localhost:8000`, Webh
 
 ---
 
-## One-time database setup (Neon / single DB)
+## One-time database setup (Neon or single PostgreSQL)
 
-If you use **one Neon database** with separate schemas (`auth`, `webhooks`, `recommender`), run the schema script once. See **[NEON-SETUP.md](NEON-SETUP.md)** for step-by-step instructions.
+Use one database with separate schemas: `auth`, `webhooks`, `recommender`.
+
+### Neon
+
+1. Go to [console.neon.tech](https://console.neon.tech) → create or open a project → **Connection details**.
+2. Copy the connection string (keep `?sslmode=require`).
+3. Run the schema script once (from project root):
 
 **Windows (PowerShell):**
 
@@ -93,13 +102,24 @@ npm install
 DATABASE_URL="postgresql://user:pass@host/db?sslmode=require" node ../../scripts/init-neon-schemas.mjs
 ```
 
+You should see: `✅ Schemas created: auth, webhooks, recommender`.
+
+Then set the **same** connection string in `backend/auth/.env`, `backend/webhooks_services/.env`, and `backend/back2/.env` (and `MLFLOW_TRACKING_URI` for back2).
+
+### Local PostgreSQL
+
+Create the schemas manually or run the same script with your local `DATABASE_URL`. Tables are created on app startup (Auth and Webhooks use Drizzle bootstrap; back2 uses Alembic/SQLAlchemy).
+
+### Database & ORM
+
+- **Auth** and **Webhooks**: Drizzle ORM (`db/schema.js`, `db/index.js`). Optional: `npm run db:generate` / `npm run db:migrate` / `npm run db:studio` in each service.
+- **back2**: SQLAlchemy ORM; `recommender` schema. No extra migration step needed for first run.
+
 ---
 
-## Execution steps (run in order)
+## Run the app (4 terminals)
 
-Use **4 terminals** (5 if you run MLflow UI).
-
-### Terminal 1 – Auth service
+### Terminal 1 – Auth
 
 ```bash
 cd backend/auth
@@ -107,7 +127,8 @@ npm install
 npm start
 ```
 
-→ **http://localhost:8080**
+→ **http://localhost:8080**  
+Endpoints: `POST /auth/signup` (body: `{ name, email, password }`), `POST /auth/login` (body: `{ email, password }` → returns `jwttoken`, `name`, `email`).
 
 ### Terminal 2 – ML recommender (FastAPI)
 
@@ -146,33 +167,28 @@ cd backend/back2
 mlflow ui --backend-store-uri $env:MLFLOW_TRACKING_URI --default-artifact-root ./mlflow_artifacts
 ```
 
-On Windows CMD use `set MLFLOW_TRACKING_URI=...` then the same `mlflow ui` command.
-
-→ **http://localhost:5000**
+(Windows CMD: `set MLFLOW_TRACKING_URI=...` then the same command.) → **http://localhost:5000**
 
 ---
 
-
-For Xternal_Client: npx serve xternal_client/MovieRec
-
 ## Using the application
 
-1. Open **http://localhost:5173** in your browser.
-2. **Sign up** or **log in** (auth uses the service on port 8080).
-3. In the app:
-   - **Recommender Studio:** Create a project, upload content and/or interaction CSVs from `example_datasets/`, map columns, choose model type (content / collaborative / hybrid). Wait until status is **Ready**, then get recommendations (by item title and/or user id).
-   - **Webhook Dashboard:** Register an external app (name + webhook URL). Copy the **API key** and use it in the external client or in API calls.
-4. **Recommendations API** (with API key):
-   - `POST http://localhost:3001/api/recommend`  
-   - Headers: `Content-Type: application/json`, `x-api-key: YOUR_API_KEY`  
-   - Body: `{ "project_id": 1, "item_title": "Some Movie", "user_id": "123" }` (omit `user_id` for content-only; omit `item_title` for collaborative-only).
+1. Open **http://localhost:5173**.
+2. **Sign up** or **log in** (auth on port 8080).
+3. **Recommender Studio:** Create a project, upload content and/or interaction CSVs from `example_datasets/`, map columns (item_id, item_title, at least one feature column for content), choose model type (content / collaborative / hybrid). Wait until status is **Ready**, then get recommendations (by item title and/or user id). You can delete a project from the project list.
+4. **Webhook Dashboard:** Register an app (name + webhook URL). Copy the **API key** for the external client or API calls.
+5. **Recommendations API** (with API key):  
+   `POST http://localhost:3001/api/recommend`  
+   Headers: `Content-Type: application/json`, `x-api-key: YOUR_API_KEY`  
+   Body: `{ "project_id": 1, "item_title": "Some Movie", "user_id": "123" }` (omit `user_id` for content-only; omit `item_title` for collaborative-only).
 
 ---
 
 ## External demo clients
 
-- **MovieRec:** open `xternal_client/MovieRec/index.html` in a browser. In `app.js` set `API_KEY` (from Webhook Dashboard) and `PROJECT` to an **existing** project ID (create a project in the Dashboard first; list IDs: `GET http://localhost:8000/projects/`).
-- **MusicRec:** open `xternal_client/MusicRec/index.html` for the music demo.
+- **MovieRec:** Open `xternal_client/MovieRec/index.html`. In `app.js` set `API_KEY` (from Webhook Dashboard) and `PROJECT` to an **existing** project ID (create one in the Dashboard first; list IDs: `GET http://localhost:8000/projects/`).
+- **MusicRec:** Open `xternal_client/MusicRec/index.html`.  
+To run with a static server: `npx serve xternal_client/MovieRec`.
 
 ---
 
@@ -182,7 +198,7 @@ For Xternal_Client: npx serve xternal_client/MovieRec
 |----------------|------|----------------------------|
 | Auth           | 8080 | Login, signup, JWT         |
 | ML recommender | 8000 | Projects, train, recommend |
-| Webhooks       | 3001 | Apps, API key, recommend  |
+| Webhooks       | 3001 | Apps, API key, recommend   |
 | Frontend       | 5173 | React UI                   |
 | MLflow UI      | 5000 | Optional model registry    |
 
@@ -191,6 +207,7 @@ For Xternal_Client: npx serve xternal_client/MovieRec
 ## Troubleshooting
 
 - **CORS / connection errors:** Ensure Auth (8080), back2 (8000), and webhooks (3001) are running before using the frontend.
-- **"Project not found" (404 from FastAPI):** The `project_id` you use (e.g. in MovieRec’s `PROJECT` or in the recommend API body) must exist in the ML backend. Create a project in the Dashboard, wait until status is **Ready**, then use that project’s ID (or list IDs with `GET http://localhost:8000/projects/`).
+- **"Project not found" (404):** The `project_id` (e.g. in MovieRec’s `PROJECT` or in the recommend API) must exist in the ML backend. Create a project in the Dashboard, wait until status is **Ready**, then use that ID (or list IDs with `GET http://localhost:8000/projects/`).
 - **"Project not found or not ready":** Wait until the project status is **Ready** after uploading data and training.
-- **Database errors:** Run the schema script (see [One-time database setup](#one-time-database-setup-neon--single-db)) and check `DATABASE_URL` (and `MLFLOW_TRACKING_URI` for back2) in each `.env`.
+- **Database errors:** Run the schema script (see [One-time database setup](#one-time-database-setup-neon-or-single-postgresql)) and check `DATABASE_URL` (and `MLFLOW_TRACKING_URI` for back2) in each `.env`.
+- **Content model error ("not in index" / empty column):** Ensure the content file has **item_id**, **item_title**, and at least one **feature** column mapped to real CSV columns (no empty mappings).

@@ -24,6 +24,7 @@ class RecommenderProject(Base):
     __table_args__ = {"schema": "recommender"}
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, index=True, nullable=True)  # auth.users.id; NULL = legacy pre-migration
     project_name = Column(String, index=True)
     status = Column(String, default=ProjectStatus.PENDING)
     
@@ -35,7 +36,7 @@ class RecommenderProject(Base):
     mlflow_model_version = Column(Integer, nullable=True)
 
     # A project can have multiple files (e.g., one content, one interaction)
-    uploaded_files = relationship("UploadedFile", back_populates="project")
+    uploaded_files = relationship("UploadedFile", back_populates="project", cascade="all, delete-orphan")
 
 # --- Uploaded Files Table ---
 class UploadedFile(Base):
@@ -51,7 +52,7 @@ class UploadedFile(Base):
     project = relationship("RecommenderProject", back_populates="uploaded_files")
     
     # A file has its own set of schema mappings
-    schema_mappings = relationship("SchemaMapping", back_populates="file")
+    schema_mappings = relationship("SchemaMapping", back_populates="file", cascade="all, delete-orphan")
 
 # --- Schema Mappings Table ---
 class SchemaMapping(Base):

@@ -16,11 +16,22 @@ class ContentBasedRecommender:
 
         Args:
             df (pd.DataFrame): The standardized dataframe.
-            schema_map (dict): A dict with 'item_id' and 'feature_cols' keys.
+            schema_map (dict): A dict with 'item_id', 'item_title', and 'feature_cols' keys.
         """
         self.df = df
         self.schema_map = schema_map
-        content_feature_columns = schema_map.get('feature_cols', [])
+        content_feature_columns = [c for c in schema_map.get('feature_cols', []) if c and str(c).strip()]
+        if not content_feature_columns:
+            raise ValueError("Content model requires at least one feature column; none configured or all empty.")
+        for col in content_feature_columns:
+            if col not in df.columns:
+                raise ValueError(f"Feature column '{col}' is not in the dataset. Columns: {list(df.columns)}")
+        item_id_col = schema_map.get('item_id') or ''
+        item_title_col = schema_map.get('item_title') or ''
+        if not item_id_col or item_id_col not in df.columns:
+            raise ValueError(f"Schema must have a valid 'item_id' column in the dataset. Got: {item_id_col!r}")
+        if not item_title_col or item_title_col not in df.columns:
+            raise ValueError(f"Schema must have a valid 'item_title' column in the dataset. Got: {item_title_col!r}")
 
         # Create a "soup" of all content features in a single string
         df['soup'] = df[content_feature_columns].fillna('').astype(str).agg(' '.join, axis=1)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Dict, Optional
 from models import ProjectStatus, ModelType, FileType
 
@@ -10,8 +10,7 @@ class SchemaMappingBase(BaseModel):
 class SchemaMapping(SchemaMappingBase):
     id: int
     file_id: int
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- UploadedFile Schemas ---
 class UploadedFileBase(BaseModel):
@@ -23,8 +22,7 @@ class UploadedFile(UploadedFileBase):
     id: int
     project_id: int
     schema_mappings: List[SchemaMapping] = []
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- RecommenderProject Schemas ---
 class RecommenderProjectBase(BaseModel):
@@ -32,13 +30,13 @@ class RecommenderProjectBase(BaseModel):
 
 class RecommenderProject(RecommenderProjectBase):
     id: int
+    owner_id: Optional[int] = None
     status: ProjectStatus
     model_type: Optional[ModelType]
     mlflow_model_name: Optional[str]
     mlflow_model_version: Optional[int]
     uploaded_files: List[UploadedFile] = []
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- API Response Schemas ---
 class RecommendationResponse(BaseModel):

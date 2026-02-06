@@ -5,7 +5,7 @@ import { API_WEBHOOK } from "../api";
 const API_URL = `${API_WEBHOOK}/api`;
 
 const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-4xl shadow-xl border border-gray-100 overflow-hidden ${className}`}>
+  <div className={`bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden ${className}`}>
     {children}
   </div>
 );
@@ -13,21 +13,21 @@ const Card = ({ children, className = "" }) => (
 const Input = (props) => (
   <input
     {...props}
-    className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-white text-sm"
   />
 );
 
 const Button = ({ children, variant = "primary", icon: Icon, loading, ...props }) => {
   const variants = {
-    primary: "bg-gradient-to-r from-cyan-600 via-cyan-800 to-cyan-600 hover:from-cyan-800 hover:via-cyan-600 hover:to-cyan-800 text-white shadow-lg shadow-blue-500/30 cursor-pointer",
-    secondary: "bg-white border-2 border-gray-200 hover:border-blue-500 text-gray-700 hover:text-blue-600 cursor-pointer"
+    primary: "bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-500 hover:from-cyan-700 hover:via-cyan-600 hover:to-cyan-500 text-white shadow-md shadow-cyan-500/30 cursor-pointer",
+    secondary: "bg-white border border-slate-200 hover:border-cyan-500 text-slate-700 hover:text-slate-900 cursor-pointer"
   };
 
   return (
     <button
       {...props}
       disabled={loading || props.disabled}
-      className={`w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 ${variants[variant]}`}
+      className={`w-full px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${variants[variant]}`}
     >
       {loading ? (
         <Activity className="w-5 h-5 animate-spin" />
@@ -166,6 +166,11 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
+  const totalUsage = usage.reduce(
+    (acc, curr) => acc + (typeof curr.usage_count === "number" ? curr.usage_count : 0),
+    0
+  );
+
   const fetchDashboardData = async () => {
     setFetchError(null);
     setLoading(true);
@@ -221,22 +226,42 @@ function Dashboard() {
   };
 
   return (
-    <div className="p-8 min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="px-4 py-6 sm:px-6 lg:px-10 lg:py-10 min-h-full">
+      <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
         {fetchError && (
           <div className="p-4 rounded-xl bg-amber-50 border-2 border-amber-200 text-amber-800 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <p className="font-medium">{fetchError}</p>
           </div>
         )}
-        {/* Header */}
-        <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-red-900 to-cyan-600 rounded-4xl flex items-center justify-center shadow-lg">
-            <Webhook className="w-8 h-8 text-white" />
+        {/* Header + metrics strip */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-900 to-cyan-600 rounded-2xl flex items-center justify-center shadow-md">
+              <Webhook className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Webhook Dashboard</h2>
+              <p className="text-sm text-gray-600">Manage your application integrations</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Webhook Dashboard</h2>
-            <p className="text-gray-600">Manage your application integrations</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
+              <p className="text-[11px] font-semibold text-slate-500">Registered apps</p>
+              <p className="mt-1 text-xl font-bold text-slate-900">{apps.length}</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
+              <p className="text-[11px] font-semibold text-slate-500">Apps with usage</p>
+              <p className="mt-1 text-xl font-bold text-slate-900">
+                {usage.length}
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
+              <p className="text-[11px] font-semibold text-slate-500">Total requests (sample)</p>
+              <p className="mt-1 text-xl font-bold text-slate-900">
+                {loading ? "—" : totalUsage}
+              </p>
+            </div>
           </div>
         </div>
 

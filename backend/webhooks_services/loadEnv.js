@@ -3,5 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, ".env") });
-dotenv.config({ path: path.join(__dirname, ".ENV") });
+const envPath = path.join(__dirname, ".env");
+const loaded = dotenv.config({ path: envPath, quiet: true });
+if (loaded.error && process.env.NODE_ENV !== "test") {
+  console.warn("Webhook service: no .env file at", envPath, "- using process.env / defaults");
+}
+dotenv.config({ path: path.join(__dirname, ".ENV"), quiet: true });
