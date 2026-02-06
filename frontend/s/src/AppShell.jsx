@@ -20,28 +20,62 @@ import { API_BACKEND, API_WEBHOOK, getBackendAuthHeaders } from "./api";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: "home", label: "Home", icon: HomeIcon, description: "Overview of your workspace" },
-  { id: "recommender", label: "Recommender Studio", icon: Activity, description: "Create projects & train models" },
-  { id: "dashboard", label: "Webhook Dashboard", icon: Webhook, description: "Apps, API keys & webhooks" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, description: "Traffic & usage" },
-  { id: "billing", label: "Billing", icon: CreditCard, description: "Plan & consumption" },
-  { id: "settings", label: "Settings", icon: Settings, description: "Workspace configuration" },
+  {
+    id: "home",
+    label: "Home",
+    icon: HomeIcon,
+    description: "Overview of your workspace",
+  },
+  {
+    id: "recommender",
+    label: "Recommender Studio",
+    icon: Activity,
+    description: "Create projects & train models",
+  },
+  {
+    id: "dashboard",
+    label: "Webhook Dashboard",
+    icon: Webhook,
+    description: "Apps, API keys & webhooks",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: BarChart3,
+    description: "Traffic & usage",
+  },
+  {
+    id: "billing",
+    label: "Billing",
+    icon: CreditCard,
+    description: "Plan & consumption",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    description: "Workspace configuration",
+  },
 ];
 
 
 
 const ShellSection = ({ title, eyebrow, description, children }) => (
-  <div className="px-6 py-8 lg:px-10 lg:py-10">
+  <div className="px-6 py-8 lg:px-10 lg:py-10 ">
     <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
-      <div className="space-y-3">
+      <div className="space-y-2 font-third">
         {eyebrow && (
-          <p className="text-xs font-semibold tracking-[0.25em] uppercase text-slate-400">
+          <p className="text-xs font-semibold tracking-[0.25em] uppercase text-slate-400 ">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-2xl lg:text-3xl font-bold text-slate-900">{title}</h2>
+        <h2 className="text-2xl lg:text-6xl font-bold text-stone-950 font-third tracking-wide">
+          {title}
+        </h2>
         {description && (
-          <p className="text-sm text-slate-500 max-w-2xl">{description}</p>
+          <p className="text-sm text-slate-600 max-w-2xl font-sec">
+            {description}
+          </p>
         )}
       </div>
       {children}
@@ -182,87 +216,79 @@ const HomeOverview = ({ onNavigate, summary }) => {
   return (
     <ShellSection
       eyebrow="Workspace"
-      title="Overview"
-      description="Real-time operational status and performance metrics for your BaaS infrastructure."
+      title="Welcome back to AiREC"
+      description="Jump into your recommender projects, inspect webhook integrations, or review how your recommendations are performing."
     >
-      {/* LIVE METRICS FROM DB */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard 
-          label="Total Projects" 
-          value={loading ? "—" : projects.length}
-          hint={`${readyProjects} ready to serve`}
-        />
-        <StatCard 
-          label="Registered Apps" 
-          value={loading ? "—" : apps.length}
-          hint={`${activeApps} active applications`}
-        />
-        <StatCard 
-          label="Total Requests" 
-          value={loading ? "—" : totalRequests.toLocaleString()}
-          hint="All-time API calls"
-        />
-        <StatCard 
-          label="Avg per App" 
-          value={loading ? "—" : avgRequestsPerApp.toLocaleString()}
-          hint="Request distribution"
-        />
-      </div>
-
-      {/* SYSTEM STATUS - NOW DYNAMIC */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <StatusCard 
-          name="ML Backend" 
-          status={serviceHealth.mlBackend.status} 
-          endpoint={API_BACKEND}
-          latency={serviceHealth.mlBackend.latency}
-        />
-        <StatusCard 
-          name="Webhook Service" 
-          status={serviceHealth.webhook.status} 
-          endpoint={API_WEBHOOK}
-          latency={serviceHealth.webhook.latency}
-        />
-        <StatusCard 
-          name="Auth Service" 
-          status={serviceHealth.auth.status} 
-          endpoint="Auth verified"
-          latency={serviceHealth.auth.latency}
-        />
-      </div>
-
-      {/* MAIN AREA */}
-      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 mt-6">
-        {/* PROJECT STATUS */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold">Project Status</p>
-            <span className="text-xs text-slate-500">{projects.length} total</span>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8 text-slate-400 text-xs">Loading projects...</div>
-          ) : projects.length > 0 ? (
-            <div className="space-y-3">
-              {projects.slice(0, 5).map((project) => (
-                <ProjectActivityItem 
-                  key={project.id}
-                  project={project}
-                  onClick={() => handleProjectClick(project)}
-                />
-              ))}
-              {projects.length > 5 && (
-                <button
-                  onClick={() => onNavigate("recommender")}
-                  className="w-full text-center py-2 text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
-                >
-                  View all {projects.length} projects →
-                </button>
-              )}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-6 lg:gap-8">
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/70 p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-600 via-cyan-700 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-cyan-500/50">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div className="leading-tight">
+                  <p className="text-xs font-semibold text-slate-500">
+                    Getting started
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Build and ship a recommender in three steps
+                  </p>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-sm text-slate-400 mb-3">No projects yet</p>
+            <ol className="space-y-3 text-xs text-slate-500">
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
+                  1
+                </span>
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    Create a project in Recommender Studio
+                  </p>
+                  <p>
+                    Upload your content and/or interaction CSVs, map the schema,
+                    and let AiREC train content, collaborative, or hybrid models for you.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
+                  2
+                </span>
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    Register an external app in the Webhook Dashboard
+                  </p>
+                  <p>
+                    Generate scoped API keys, point AiREC at your webhook URL, and keep
+                    your clients decoupled from the ML backend.
+                  </p>
+                </div>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
+                  3
+                </span>
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    Monitor traffic and usage
+                  </p>
+                  <p>
+                    Use Analytics and Billing to understand how recommendations are
+                    being consumed and keep an eye on quotas.
+                  </p>
+                </div>
+              </li>
+            </ol>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <button
+                onClick={() => onNavigate("recommender")}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 text-slate-950 shadow-md shadow-cyan-500/40 hover:shadow-lg hover:-translate-y-[1px] transition-all"
+              >
+                <Activity className="w-4 h-4" />
+                <span>Open Recommender Studio</span>
+              </button>
               <button
                 onClick={() => onNavigate("recommender")}
                 className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
@@ -270,7 +296,7 @@ const HomeOverview = ({ onNavigate, summary }) => {
                 Create your first project →
               </button>
             </div>
-          )}
+          
         </div>
 
         {/* QUICK ACTIONS */}
@@ -299,167 +325,60 @@ const HomeOverview = ({ onNavigate, summary }) => {
         </div>
       </div>
 
-      {/* WORKSPACE SUMMARY */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-slate-700 p-6 shadow-lg mt-6">
-        <p className="text-sm font-semibold mb-6 text-slate-200">Workspace Summary</p>
-        <div className="grid grid-cols-3 gap-6">
-          <SummaryItemPro 
-            label="Active Projects" 
-            value={loading ? "—" : projects.length} 
-            subtitle={`${readyProjects} ready`}
-          />
-          <SummaryItemPro 
-            label="Registered Apps" 
-            value={loading ? "—" : apps.length} 
-            subtitle={`${activeApps} active`}
-          />
-          <SummaryItemPro 
-            label="Total Requests" 
-            value={loading ? "—" : totalRequests.toLocaleString()} 
-            subtitle="All-time"
-          />
+        <div className="space-y-4">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/80 p-5 space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-2xl bg-slate-900 flex items-center justify-center text-slate-50">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <div className="leading-tight">
+                  <p className="text-xs font-semibold text-slate-500">
+                    Workspace snapshot
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Live usage from your APIs
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <div className="space-y-1">
+                <p className="text-slate-500">Total requests</p>
+                <p className="text-xl font-bold text-slate-900">
+                  {loading ? "—" : totalRequests}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-500">Projects live</p>
+                <p className="text-xl font-bold text-slate-900">
+                  {loading ? "—" : readyProjects}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-500">Registered apps</p>
+                <p className="text-xl font-bold text-slate-900">
+                  {loading ? "—" : appsCount}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-slate-900 text-slate-50 rounded-3xl border border-slate-800 p-5 flex items-start gap-3">
+            <div className="mt-1">
+              <ShieldCheck className="w-5 h-5 text-emerald-300" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Secure by default</p>
+              <p className="text-xs text-slate-400">
+                Each project and webhook app is scoped to your account via JWT, so
+                you can safely run multiple tenants from the same backend without
+                leaking data across workspaces.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </ShellSection>
-  );
-};
-
-const StatusCard = ({ name, status = "checking", endpoint, latency }) => {
-  const statusConfig = {
-    ok: {
-      badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-      dot: "bg-emerald-500",
-      text: "Operational"
-    },
-    degraded: {
-      badge: "bg-amber-100 text-amber-700 border border-amber-200",
-      dot: "bg-amber-400",
-      text: "Degraded"
-    },
-    checking: {
-      badge: "bg-slate-100 text-slate-700 border border-slate-200",
-      dot: "bg-slate-400 animate-pulse",
-      text: "Checking..."
-    }
-  };
-
-  const config = statusConfig[status] || statusConfig.checking;
-
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-semibold text-slate-900">{name}</span>
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${config.badge}`}>
-          {config.text}
-        </span>
-      </div>
-      <div className="flex items-center justify-between text-[11px] text-slate-500">
-        <div className="flex items-center gap-2 truncate flex-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-          <span className="truncate">{endpoint}</span>
-        </div>
-        {latency && status !== 'checking' && (
-          <span className={`ml-2 font-semibold whitespace-nowrap ${
-            status === 'ok' ? 'text-emerald-600' : 'text-red-600'
-          }`}>
-            {latency}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
-
-const ProjectActivityItem = ({ project, onClick }) => {
-  
-  
-  const statusConfig = {
-    ready: { color: "bg-emerald-500", text: "Ready", bgClass: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-    training: { color: "bg-blue-500", text: "Training", bgClass: "bg-blue-50 text-blue-700 border-blue-200" },
-    failed: { color: "bg-red-500", text: "Failed", bgClass: "bg-red-50 text-red-700 border-red-200" },
-    pending: { color: "bg-amber-500", text: "Pending", bgClass: "bg-amber-50 text-amber-700 border-amber-200" },
-  };
-
-  const config = statusConfig[project.status] || statusConfig.pending;
-
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-all hover:shadow-sm border border-transparent hover:border-slate-200 group cursor-pointer"
-    >
-      <div className={`w-2 h-2 rounded-full mt-1.5 ${config.color} flex-shrink-0`} />
-      <div className="flex-1 min-w-0 text-left">
-        <p className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors mb-1">
-          {project.name || project.project_name || "Unnamed Project"}
-        </p>
-        <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-          ID: {project.id || project.project_id || "N/A"}
-        </span>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${config.bgClass}`}>
-          {config.text}
-        </span>
-        <svg 
-          className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
-    </button>
-  );
-};
-
-
-
-const SummaryItemPro = ({ label, value, subtitle }) => (
-  <div className="text-center">
-    <p className="text-3xl font-bold text-white mb-1">{value}</p>
-    <p className="text-xs text-slate-400 mb-2">{label}</p>
-    <span className="text-[10px] text-slate-500">{subtitle}</span>
-  </div>
-);
-
-const QuickActionCard = ({ title, description, Icon, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className="
-        group w-full text-left rounded-xl border border-slate-200
-        p-4 transition-all duration-200
-        hover:border-indigo-400
-        hover:shadow-md
-        hover:-translate-y-[2px]
-        bg-white
-      "
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className="
-            w-9 h-9 rounded-lg flex items-center justify-center
-            bg-slate-100
-            transition-colors duration-200
-            group-hover:bg-indigo-100
-          "
-        >
-          <Icon className="w-5 h-5 text-slate-700 group-hover:text-indigo-600" />
-        </div>
-
-        <div>
-          <p className="text-sm font-semibold text-slate-800">
-            {title}
-          </p>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {description}
-          </p>
-        </div>
-      </div>
-    </button>
   );
 };
 
@@ -486,186 +405,128 @@ const AnalyticsView = ({ summary }) => {
       title="Usage Analytics"
       description="Traffic trends, application performance, and infrastructure insights from your database."
     >
-      {/* KEY METRICS FROM DB */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <MetricCard 
-          label="Total Requests" 
-          value={loading ? "—" : totalRequests.toLocaleString()}
-          change="All-time webhook calls"
-        />
-        <MetricCard 
-          label="Registered Apps" 
-          value={loading ? "—" : apps.length}
-          change={`${usage.length} with usage data`}
-        />
-        <MetricCard 
-          label="Avg per App" 
-          value={loading ? "—" : avgRequestsPerApp.toLocaleString()}
-          change="Request distribution"
-        />
-        <MetricCard 
-          label="Top Performer" 
-          value={loading ? "—" : topApp ? (topApp.app_name?.substring(0, 12) + (topApp.app_name?.length > 12 ? '...' : '')) : "N/A"}
-          change={topApp ? `${(topApp.usage_count || 0).toLocaleString()} requests` : "No data"}
-        />
-      </div>
-
-      {/* USAGE VISUALIZATION */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mt-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-sm font-semibold text-slate-900">Request Distribution by App</p>
-            <p className="text-xs text-slate-500 mt-0.5">Based on webhooks.usage table</p>
-          </div>
-          <div className="text-xs text-slate-500">
-            {totalRequests.toLocaleString()} total
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs mb-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="font-medium text-slate-700">
+            Environment: <span className="font-semibold">Development</span>
+          </span>
         </div>
-
-        {loading ? (
-          <div className="text-center py-12 text-slate-400 text-xs">Loading usage data...</div>
-        ) : usage.length > 0 ? (
-          <div className="flex items-end justify-between gap-3 h-56">
-            {usage.map((app, i) => {
-              const maxUsage = Math.max(...usage.map(u => u.usage_count || 0));
-              const height = maxUsage > 0 ? ((app.usage_count || 0) / maxUsage) * 100 : 5;
-              const percent = totalRequests > 0
-                ? Math.round(((app.usage_count || 0) / totalRequests) * 100)
-                : 0;
-
-              return (
-                <div key={app.app_name || i} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full relative group">
-                    <div
-                      className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 via-teal-500 to-green-400 transition-all duration-300 hover:from-emerald-700 hover:via-teal-600 cursor-pointer shadow-sm"
-                      style={{ height: `${height}%`, minHeight: '20px' }}
-                    />
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-lg text-xs whitespace-nowrap">
-                        <p className="font-semibold">{(app.usage_count || 0).toLocaleString()} requests</p>
-                        <p className="text-slate-400 text-[10px]">{app.app_name}</p>
-                        <p className="text-slate-400 text-[10px]">{percent}% of total</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center w-full">
-                    <p className="text-[10px] font-semibold text-slate-900 truncate px-1" title={app.app_name}>
-                      {app.app_name && app.app_name.length > 8 ? app.app_name.substring(0, 8) + '...' : app.app_name || 'N/A'}
-                    </p>
-                    <p className="text-[9px] font-semibold text-emerald-600">
-                      {percent}%
-                    </p>
-                  </div>
+        <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1 py-0.5">
+          {["24h", "7d", "30d"].map((label) => {
+            const active = label === "7d";
+            return (
+              <button
+                key={label}
+                className={`px-3 py-1 rounded-full font-medium ${
+                  active
+                    ? "bg-slate-900 text-slate-50"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
+          <p className="text-xs font-semibold text-slate-500">
+            Total requests
+          </p>
+          <p className="text-2xl font-bold text-slate-900">
+            {loading ? "—" : totalRequests}
+          </p>
+          <p className="text-[11px] text-slate-500">
+            Aggregated from webhook usage table
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
+          <p className="text-xs font-semibold text-slate-500">
+            Active webhook apps
+          </p>
+          <p className="text-2xl font-bold text-slate-900">
+            {loading ? "—" : apps.length}
+          </p>
+          <p className="text-[11px] text-slate-500">
+            Based on apps registered in the webhooks service
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
+          <p className="text-xs font-semibold text-slate-500">
+            Apps with traffic
+          </p>
+          <p className="text-2xl font-bold text-slate-900">
+            {loading ? "—" : usage.length}
+          </p>
+          <p className="text-[11px] text-slate-500">
+            Number of apps present in the usage table
+          </p>
+        </div>
+      </div>
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+          <p className="text-xs font-semibold text-slate-500">
+            Requests per app
+          </p>
+          <div className="space-y-2 text-xs">
+            {!loading && perAppPercentages.length === 0 && (
+              <p className="text-slate-500">
+                No usage records yet. Once your apps start calling the recommend
+                endpoint, you&apos;ll see their distribution here.
+              </p>
+            )}
+            {perAppPercentages.map((row) => (
+              <div key={row.app_name}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-slate-700">{row.app_name}</span>
+                  <span className="text-slate-500">{row.percent}%</span>
                 </div>
-              );
-            })}
+                <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400"
+                    style={{ width: `${row.percent}%` }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-sm text-slate-400 mb-3">No usage data available</p>
-            <p className="text-xs text-slate-500">Register apps and start making requests to see analytics</p>
-          </div>
-        )}
-      </div>
-
-      {/* LOWER SECTION */}
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        {/* DISTRIBUTION TABLE */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold">Traffic Distribution</p>
-            <span className="text-xs text-slate-500">By application</span>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8 text-slate-400 text-xs">Loading...</div>
-          ) : usage.length > 0 ? (
-            <div className="space-y-4">
-              {usage.map((u) => {
-                const percent = totalRequests > 0
-                  ? Math.round(((u.usage_count || 0) / totalRequests) * 100)
-                  : 0;
-
-                return (
-                  <div key={u.app_name}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-semibold text-slate-900 truncate pr-2">{u.app_name}</span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs text-slate-500">{(u.usage_count || 0).toLocaleString()}</span>
-                        <span className="text-xs font-bold text-slate-900">{percent}%</span>
-                      </div>
-                    </div>
-                    <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-slate-400 text-xs">No usage data available</div>
-          )}
         </div>
-
-        {/* TOP APPS TABLE */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold">Top Applications</p>
-            <span className="text-xs text-slate-500">By request volume</span>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8 text-slate-400 text-xs">Loading...</div>
-          ) : usage.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead className="border-b border-slate-200">
-                  <tr>
-                    <th className="text-left pb-3 font-semibold text-slate-500">Rank</th>
-                    <th className="text-left pb-3 font-semibold text-slate-500">Application</th>
-                    <th className="text-right pb-3 font-semibold text-slate-500">Requests</th>
-                    <th className="text-right pb-3 font-semibold text-slate-500">Share</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usage
-                    .slice()
-                    .sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0))
-                    .map((u, idx) => {
-                      const percent = totalRequests > 0
-                        ? Math.round(((u.usage_count || 0) / totalRequests) * 100)
-                        : 0;
-                      return (
-                        <tr key={u.app_name || idx} className="border-b border-slate-100 hover:bg-emerald-50 transition-colors">
-                          <td className="py-3">
-                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">
-                              {idx + 1}
-                            </span>
-                          </td>
-                          <td className="py-3 font-semibold text-slate-900 truncate max-w-[150px]" title={u.app_name}>
-                            {u.app_name}
-                          </td>
-                          <td className="text-right font-semibold text-slate-900">
-                            {(u.usage_count || 0).toLocaleString()}
-                          </td>
-                          <td className="text-right">
-                            <span className="px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-                              {percent}%
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-slate-400 text-xs">No usage data available</div>
-          )}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
+          <p className="text-xs font-semibold text-slate-500">
+            Top apps by traffic
+          </p>
+          <ul className="space-y-2 text-xs">
+            {loading && <li className="text-slate-500">Loading usage…</li>}
+            {!loading &&
+              usage
+                .slice()
+                .sort(
+                  (a, b) => (b.usage_count || 0) - (a.usage_count || 0)
+                )
+                .slice(0, 5)
+                .map((u) => (
+                  <li
+                    key={u.app_name}
+                    className="flex justify-between border-b border-slate-100 pb-1 last:border-0"
+                  >
+                    <span className="text-slate-700">{u.app_name}</span>
+                    <span className="font-semibold text-slate-900">
+                      {u.usage_count || 0}
+                    </span>
+                  </li>
+                ))}
+            {!loading && usage.length === 0 && (
+              <li className="text-slate-500">
+                No usage yet. Make requests via the `/api/recommend` endpoint to
+                populate these stats.
+              </li>
+            )}
+          </ul>
+          <p className="text-[11px] text-slate-500">
+            All values are computed from the `webhooks.usage` table.
+          </p>
         </div>
       </div>
     </ShellSection>
@@ -784,7 +645,9 @@ const BillingView = ({ summary }) => {
             </p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-xs space-y-2">
-            <p className="text-xs font-semibold text-slate-500">Cost controls</p>
+            <p className="text-xs font-semibold text-slate-500">
+              Cost controls
+            </p>
             <ul className="list-disc list-inside space-y-1 text-slate-600">
               <li>Set soft limits on monthly recommendation volume.</li>
               <li>Alert on sudden spikes per project or per API key.</li>
@@ -856,9 +719,7 @@ const SettingsView = () => (
               </code>
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 mb-1">
-                Webhook service
-              </p>
+              <p className="text-[11px] text-slate-500 mb-1">Webhook service</p>
               <code className="block rounded-lg bg-slate-50 border border-slate-100 px-3 py-2 text-[11px] text-slate-800 break-all">
                 http://localhost:3001
               </code>
@@ -928,7 +789,7 @@ function useDashboardSummary() {
         const backendHeaders = getBackendAuthHeaders();
         const [projectsRes, appsRes, usageRes] = await Promise.all([
           fetch(`${API_BACKEND}/projects/`, { headers: backendHeaders }).catch(
-            () => null
+            () => null,
           ),
           fetch(`${API_WEBHOOK}/api/apps`).catch(() => null),
           fetch(`${API_WEBHOOK}/api/apps/usage`).catch(() => null),
@@ -973,10 +834,10 @@ function useDashboardSummary() {
     const totalRequests = state.usage.reduce(
       (acc, curr) =>
         acc + (typeof curr.usage_count === "number" ? curr.usage_count : 0),
-      0
+      0,
     );
     const readyProjects = state.projects.filter(
-      (p) => p.status === "ready"
+      (p) => p.status === "ready",
     ).length;
 
     return {
