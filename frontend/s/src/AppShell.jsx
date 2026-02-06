@@ -19,26 +19,60 @@ import { toast } from "react-toastify";
 import { API_BACKEND, API_WEBHOOK, getBackendAuthHeaders } from "./api";
 
 const NAV_ITEMS = [
-  { id: "home", label: "Home", icon: HomeIcon, description: "Overview of your workspace" },
-  { id: "recommender", label: "Recommender Studio", icon: Activity, description: "Create projects & train models" },
-  { id: "dashboard", label: "Webhook Dashboard", icon: Webhook, description: "Apps, API keys & webhooks" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, description: "Traffic & usage" },
-  { id: "billing", label: "Billing", icon: CreditCard, description: "Plan & consumption" },
-  { id: "settings", label: "Settings", icon: Settings, description: "Workspace configuration" },
+  {
+    id: "home",
+    label: "Home",
+    icon: HomeIcon,
+    description: "Overview of your workspace",
+  },
+  {
+    id: "recommender",
+    label: "Recommender Studio",
+    icon: Activity,
+    description: "Create projects & train models",
+  },
+  {
+    id: "dashboard",
+    label: "Webhook Dashboard",
+    icon: Webhook,
+    description: "Apps, API keys & webhooks",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    icon: BarChart3,
+    description: "Traffic & usage",
+  },
+  {
+    id: "billing",
+    label: "Billing",
+    icon: CreditCard,
+    description: "Plan & consumption",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    description: "Workspace configuration",
+  },
 ];
 
 const ShellSection = ({ title, eyebrow, description, children }) => (
-  <div className="px-6 py-8 lg:px-10 lg:py-10">
+  <div className="px-6 py-8 lg:px-10 lg:py-10 ">
     <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
-      <div className="space-y-3">
+      <div className="space-y-2 font-third">
         {eyebrow && (
-          <p className="text-xs font-semibold tracking-[0.25em] uppercase text-slate-400">
+          <p className="text-xs font-semibold tracking-[0.25em] uppercase text-slate-400 ">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-2xl lg:text-3xl font-bold text-slate-900">{title}</h2>
+        <h2 className="text-2xl lg:text-6xl font-bold text-stone-950 font-third tracking-wide">
+          {title}
+        </h2>
         {description && (
-          <p className="text-sm text-slate-500 max-w-2xl">{description}</p>
+          <p className="text-sm text-slate-600 max-w-2xl font-sec">
+            {description}
+          </p>
         )}
       </div>
       {children}
@@ -52,7 +86,7 @@ const HomeOverview = ({ onNavigate, summary }) => {
   return (
     <ShellSection
       eyebrow="Workspace"
-      title="Welcome back to AiREC"
+      title="Welcome  to AiREC"
       description="Jump into your recommender projects, inspect webhook integrations, or review how your recommendations are performing."
     >
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-6 lg:gap-8">
@@ -60,59 +94,70 @@ const HomeOverview = ({ onNavigate, summary }) => {
           <div className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/70 p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-600 via-cyan-700 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-cyan-500/50">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-600 via-cyan-700 to-emerald-400 flex items-center justify-center text-white ">
                   <Zap className="w-5 h-5" />
                 </div>
                 <div className="leading-tight">
-                  <p className="text-xs font-semibold text-slate-500">
+                  <p className="text-s font-semibold text-neutral-900 font-third">
                     Getting started
                   </p>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-xs font-semibold text-slate-600">
                     Build and ship a recommender in three steps
                   </p>
                 </div>
               </div>
             </div>
-            <ol className="space-y-3 text-xs text-slate-500">
-              <li className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
-                  1
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
+            <ol className="space-y-6">
+              <li className="flex gap-4 group">
+                <div className="relative flex-shrink-0">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 font-medium text-white text-sm transition-colors group-hover:bg-cyan-950">
+                    1
+                  </span>
+                  <div className="absolute left-1/2 top-8 h-6 w-px -translate-x-1/2 bg-slate-200" />
+                </div>
+                <div className="flex-1 pb-2">
+                  <p className="font-semibold text-slate-900 mb-1 text-lg">
                     Create a project in Recommender Studio
                   </p>
-                  <p>
+                  <p className="text-slate-600  text-sm">
                     Upload your content and/or interaction CSVs, map the schema,
-                    and let AiREC train content, collaborative, or hybrid models for you.
+                    and let AiREC train content, collaborative, or hybrid models
+                    for you.
                   </p>
                 </div>
               </li>
-              <li className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
-                  2
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
+
+              <li className="flex gap-4 group">
+                <div className="relative flex-shrink-0">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 font-medium text-white text-sm transition-colors group-hover:bg-cyan-950">
+                    2
+                  </span>
+                  <div className="absolute left-1/2 top-8 h-6 w-px -translate-x-1/2 bg-slate-200" />
+                </div>
+                <div className="flex-1 pb-2">
+                  <p className="font-semibold text-slate-900 mb-1">
                     Register an external app in the Webhook Dashboard
                   </p>
-                  <p>
-                    Generate scoped API keys, point AiREC at your webhook URL, and keep
-                    your clients decoupled from the ML backend.
+                  <p className="text-slate-600  text-sm">
+                    Generate scoped API keys, point AiREC at your webhook URL,
+                    and keep your clients decoupled from the ML backend.
                   </p>
                 </div>
               </li>
-              <li className="flex gap-3">
-                <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[10px] font-semibold text-slate-50">
-                  3
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900">
+
+              <li className="flex gap-4 group">
+                <div className="relative flex-shrink-0">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 font-medium text-white text-sm transition-colors group-hover:bg-cyan-950">
+                    3
+                  </span>
+                </div>
+                <div className="flex-1 pb-2">
+                  <p className="font-semibold text-slate-900 mb-1">
                     Monitor traffic and usage
                   </p>
-                  <p>
-                    Use Analytics and Billing to understand how recommendations are
-                    being consumed and keep an eye on quotas.
+                  <p className="text-slate-600  text-sm">
+                    Use Analytics and Billing to understand how recommendations
+                    are being consumed and keep an eye on quotas.
                   </p>
                 </div>
               </li>
@@ -181,9 +226,9 @@ const HomeOverview = ({ onNavigate, summary }) => {
             <div className="space-y-1">
               <p className="text-sm font-semibold">Secure by default</p>
               <p className="text-xs text-slate-400">
-                Each project and webhook app is scoped to your account via JWT, so
-                you can safely run multiple tenants from the same backend without
-                leaking data across workspaces.
+                Each project and webhook app is scoped to your account via JWT,
+                so you can safely run multiple tenants from the same backend
+                without leaking data across workspaces.
               </p>
             </div>
           </div>
@@ -238,9 +283,7 @@ const AnalyticsView = ({ summary }) => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-2">
-          <p className="text-xs font-semibold text-slate-500">
-            Total requests
-          </p>
+          <p className="text-xs font-semibold text-slate-500">Total requests</p>
           <p className="text-2xl font-bold text-slate-900">
             {loading ? "—" : totalRequests}
           </p>
@@ -308,9 +351,7 @@ const AnalyticsView = ({ summary }) => {
             {!loading &&
               usage
                 .slice()
-                .sort(
-                  (a, b) => (b.usage_count || 0) - (a.usage_count || 0)
-                )
+                .sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0))
                 .slice(0, 5)
                 .map((u) => (
                   <li
@@ -431,7 +472,9 @@ const BillingView = ({ summary }) => {
             </p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-xs space-y-2">
-            <p className="text-xs font-semibold text-slate-500">Cost controls</p>
+            <p className="text-xs font-semibold text-slate-500">
+              Cost controls
+            </p>
             <ul className="list-disc list-inside space-y-1 text-slate-600">
               <li>Set soft limits on monthly recommendation volume.</li>
               <li>Alert on sudden spikes per project or per API key.</li>
@@ -503,9 +546,7 @@ const SettingsView = () => (
               </code>
             </div>
             <div>
-              <p className="text-[11px] text-slate-500 mb-1">
-                Webhook service
-              </p>
+              <p className="text-[11px] text-slate-500 mb-1">Webhook service</p>
               <code className="block rounded-lg bg-slate-50 border border-slate-100 px-3 py-2 text-[11px] text-slate-800 break-all">
                 http://localhost:3001
               </code>
@@ -575,7 +616,7 @@ function useDashboardSummary() {
         const backendHeaders = getBackendAuthHeaders();
         const [projectsRes, appsRes, usageRes] = await Promise.all([
           fetch(`${API_BACKEND}/projects/`, { headers: backendHeaders }).catch(
-            () => null
+            () => null,
           ),
           fetch(`${API_WEBHOOK}/api/apps`).catch(() => null),
           fetch(`${API_WEBHOOK}/api/apps/usage`).catch(() => null),
@@ -620,10 +661,10 @@ function useDashboardSummary() {
     const totalRequests = state.usage.reduce(
       (acc, curr) =>
         acc + (typeof curr.usage_count === "number" ? curr.usage_count : 0),
-      0
+      0,
     );
     const readyProjects = state.projects.filter(
-      (p) => p.status === "ready"
+      (p) => p.status === "ready",
     ).length;
 
     return {
