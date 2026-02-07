@@ -6,6 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import Papa from "papaparse";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   Sparkles,
@@ -16,25 +17,33 @@ import {
   AlertCircle,
   Play,
   Trash2,
+  FileText,
+  Users,
+  Zap,
+  Target,
+  Award,
+  Clock,
 } from "lucide-react";
 import { API_BACKEND, getBackendAuthHeaders } from "../api";
 import { useAuth } from "../context/AuthContext";
 
 const Input = (props) => (
-  <input
+  <motion.input
+    whileFocus={{ scale: 1.0 }}
     {...props}
-    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-white text-sm"
+    className="w-full px-4 py-3 border-1 border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-300 bg-white text-sm font-third cursor-pointer"
   />
 );
 
 const Select = (props) => (
   <div className="relative">
-    <select
+    <motion.select
+      whileFocus={{ scale: 1.01 }}
       {...props}
-      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white appearance-none transition-all duration-200 text-sm"
+      className="w-full px-4 py-3 border-2 border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 bg-white appearance-none transition-all duration-300 text-sm font-third hover:border-slate-300"
     >
       {props.children}
-    </select>
+    </motion.select>
     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
   </div>
 );
@@ -42,42 +51,57 @@ const Select = (props) => (
 const Button = ({ children, variant = "primary", icon: Icon, ...props }) => {
   const variants = {
     primary:
-      "bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-500 hover:from-cyan-700 hover:via-cyan-600 hover:to-cyan-500 text-white shadow-md shadow-cyan-500/30 cursor-pointer",
+      "bg-gradient-to-br from-rose-600 to-cyan-600 hover:from-rose-700 hover:to-cyan-700 text-white shadow-xs  hover:shadow-xs  cursor-pointer",
     secondary:
-      "bg-white border border-slate-200 hover:border-cyan-500 text-slate-700 hover:text-slate-900",
+      "bg-white border-2 border-slate-200 hover:border-cyan-400 text-slate-700 hover:text-slate-900 shadow-sm ",
   };
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.0, y: 0 }}
+      whileTap={{ scale: 0.98 }}
       {...props}
-      className={`w-full px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${variants[variant]}`}
+      className={`w-full px-6 py-3.5 text-sm font-bold rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-third relative overflow-hidden ${variants[variant]}`}
     >
-      {Icon && <Icon className="w-5 h-5" />}
-      <span>{children}</span>
-    </button>
+      {variant === "primary" && (
+        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+      )}
+      {Icon && (
+        <Icon className={`w-5 h-5 ${props.disabled && variant === "primary" ? "animate-spin" : ""}`} />
+      )}
+      <span className="relative z-10">{children}</span>
+    </motion.button>
   );
 };
 
 const Card = ({ children, className = "", gradient = false }) => (
-  <div
-    className={`bg-white rounded-2xl shadow-md border border-slate-100 overflow-hidden ${
-      gradient ? "bg-gradient-to-br from-white to-slate-50" : ""
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className={`bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-500 ${
+      gradient ? "bg-gradient-to-br from-white via-slate-50 to-white" : ""
     } ${className}`}
   >
     {children}
-  </div>
+  </motion.div>
 );
 
 const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
-  <div className="mt-5 p-5 bg-gradient-to-br from-gray-50 to-blue-50 border border-gray-200 rounded-xl">
-    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+  <motion.div
+    initial={{ opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: "auto" }}
+    transition={{ duration: 0.4 }}
+    className="mt-6 p-6 bg-gradient-to-br from-slate-50 via-white to-cyan-50/30 border-2 border-slate-200 rounded-2xl"
+  >
+    <h3 className="font-bold text-slate-900 mb-5 flex items-center font-third text-sm">
       <Sparkles className="w-4 h-4 mr-2 text-cyan-600" />
       {title}
     </h3>
     <div className="space-y-4">
       {schemaKeys.map(({ key, label, multi }) => (
         <div key={key}>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-bold text-slate-700 mb-2 font-third">
             {label}
           </label>
           <Select
@@ -89,7 +113,7 @@ const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
                 : e.target.value;
               onChange({ ...schema, [key]: value });
             }}
-            className={multi ? "h-28" : ""}
+            className={multi ? "h-32" : ""}
           >
             {!multi && <option value="">Select a column...</option>}
             {headers.map((h) => (
@@ -99,14 +123,15 @@ const SchemaMapper = ({ title, headers, schema, onChange, schemaKeys }) => (
             ))}
           </Select>
           {multi && (
-            <p className="text-xs text-gray-500 mt-2 italic">
+            <p className="text-xs text-slate-500 mt-2 italic font-third flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-cyan-400"></span>
               Hold Ctrl/Cmd to select multiple columns
             </p>
           )}
         </div>
       ))}
     </div>
-  </div>
+  </motion.div>
 );
 
 function RecommenderPanel() {
@@ -462,423 +487,630 @@ function RecommenderPanel() {
   };
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-10 lg:py-10 min-h-full">
+    <div className="px-6 py-8 lg:px-10 lg:py-10 min-h-full bg-gradient-to-br from-neutral-50 via-white to-slate-50">
       <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-3"
+        >
+          <p className="text-xs font-semibold tracking-[0.3em] uppercase text-slate-400 font-third flex items-center gap-2">
+            <span className="w-8 h-[2px] bg-gradient-to-r from-rose-400 to-transparent"></span>
+            Recommender Studio
+          </p>
+          <h1 className="text-3xl lg:text-6xl font-bold text-neutral-900 font-main tracking-tight">
+            AI-Powered Recommendations
+          </h1>
+          <p className="text-sm text-slate-600 max-w-2xl font-third leading-relaxed">
+            Build and deploy intelligent recommendation systems with content-based, collaborative, and hybrid filtering.
+          </p>
+        </motion.div>
+
         {/* Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
-            <p className="text-[11px] font-semibold text-slate-500">
-              Total projects
-            </p>
-            <p className="mt-1 text-xl font-bold text-slate-900">
-              {projectStats.total}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
-            <p className="text-[11px] font-semibold text-slate-500">
-              Ready to recommend
-            </p>
-            <p className="mt-1 text-xl font-bold text-emerald-600">
-              {projectStats.ready}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3">
-            <p className="text-[11px] font-semibold text-slate-500">
-              Training in progress
-            </p>
-            <p className="mt-1 text-xl font-bold text-amber-600">
-              {projectStats.processing}
-            </p>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
+          <motion.div
+            whileHover={{ scale: 1.0, y: 0 }}
+            className="group relative bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-sm transition-all duration-300"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-50/0 to-cyan-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-rose-100/20 to-cyan-100/20 rounded-full blur-2xl"></div>
+            
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-slate-600 font-third">Total Projects</p>
+                <Target className="w-4 h-4 text-rose-400" />
+              </div>
+              <p className="text-3xl font-bold text-slate-900 font-main">{projectStats.total}</p>
+              <p className="text-sm text-slate-500 mt-2 font-third flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-rose-800"></span>
+                All time
+              </p>
+            </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.0, y: 0 }}
+            className="group relative bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-sm transition-all duration-300"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/0 to-emerald-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-emerald-100/20 to-teal-100/20 rounded-full blur-2xl"></div>
+            
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-slate-600 font-third">Ready to Recommend</p>
+                <CheckCircle className="w-4 h-4 text-rose-500" />
+              </div>
+              <p className="text-3xl font-bold text-slate-900 font-main">{projectStats.ready}</p>
+              <p className="text-xs text-slate-500 mt-2 font-third flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-rose-800"></span>
+                Active models
+              </p>
+            </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.0, y: 0 }}
+            className="group relative bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-sm transition-all duration-300"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-100/20 to-orange-100/20 rounded-full blur-2xl"></div>
+            
+            <div className="relative p-6">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-slate-600 font-third">Training in Progress</p>
+                <Clock className="w-4 h-4 text-rose-600" />
+              </div>
+              <p className="text-3xl font-bold text-neutral-900 font-main">{projectStats.processing}</p>
+              <p className="text-xs text-slate-500 mt-2 font-third flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-amber-800"></span>
+                Processing
+              </p>
+            </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+          </motion.div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left side: create + recommend */}
           <div className="lg:col-span-2 space-y-8">
             <Card gradient>
-              <div className="p-8">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-900 via-cyan-800 to-cyan-900 rounded-4xl flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Create New Project
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      Build your AI-powered recommendation engine
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Project Name
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="e.g., My Movie Recommender"
-                      value={projectName}
-                      onChange={(e) => setProjectName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-6 border-2 border-dashed border-red-900 rounded-2xl bg-gradient-to-br from-blue-50 to-white hover:border-cyan-400 transition-all duration-200">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <Upload className="w-5 h-5 text-rose-950" />
-                        <h3 className="font-semibold text-base text-gray-900">
-                          Content Data
-                        </h3>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Upload item details (e.g., movies.csv)
+              <div className="relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-rose-100/30 to-cyan-100/30 rounded-full blur-3xl"></div>
+                
+                <div className="relative p-8">
+                  <div className="flex items-center space-x-4 mb-8">
+                    <motion.div
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                      className="w-14 h-14 bg-gradient-to-br from-rose-700  to-cyan-600 rounded-full flex items-center justify-center "
+                    >
+                      <Sparkles className="w-7 h-7 text-white" />
+                    </motion.div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 font-main">
+                        Create New Project
+                      </h2>
+                      <p className="text-sm text-gray-600 font-third">
+                        Build your AI-powered recommendation engine
                       </p>
-                      <Input
-                        type="file"
-                        accept=".csv"
-                        onChange={(e) =>
-                          setContentFile(
-                            e.target.files ? e.target.files[0] : null
-                          )
-                        }
-                      />
-                      {contentFile && (
-                        <SchemaMapper
-                          title="Map Content Schema"
-                          headers={contentHeaders}
-                          schema={contentSchema}
-                          onChange={setContentSchema}
-                          schemaKeys={[
-                            { key: "item_id", label: "Item ID Column" },
-                            { key: "item_title", label: "Item Title Column" },
-                            {
-                              key: "feature_cols",
-                              label: "Feature Columns",
-                              multi: true,
-                            },
-                          ]}
-                        />
-                      )}
-                    </div>
-
-                    <div className="p-6 border-2 border-dashed border-red-900 rounded-2xl bg-gradient-to-br from-indigo-50 to-white hover:border-cyan-400 transition-all duration-200">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <TrendingUp className="w-5 h-5 text-rose-900" />
-                        <h3 className="font-semibold text-base text-gray-900">
-                          Interaction Data
-                        </h3>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Upload user ratings (e.g., ratings.csv)
-                      </p>
-                      <Input
-                        type="file"
-                        accept=".csv"
-                        onChange={(e) =>
-                          setInteractionFile(
-                            e.target.files ? e.target.files[0] : null
-                          )
-                        }
-                      />
-                      {interactionFile && (
-                        <SchemaMapper
-                          title="Map Interaction Schema"
-                          headers={interactionHeaders}
-                          schema={interactionSchema}
-                          onChange={setInteractionSchema}
-                          schemaKeys={[
-                            { key: "user_id", label: "User ID Column" },
-                            { key: "item_id", label: "Item ID Column" },
-                            { key: "rating", label: "Rating Column" },
-                          ]}
-                        />
-                      )}
                     </div>
                   </div>
 
-                  <Button
-                    onClick={handleCreateProject}
-                    disabled={
-                      currentStatus === "uploading" ||
-                      currentStatus === "processing"
-                    }
-                    icon={
-                      currentStatus === "uploading" ||
-                      currentStatus === "processing"
-                        ? Loader2
-                        : Sparkles
-                    }
-                  >
-                    {currentStatus === "uploading" && "Uploading Files..."}
-                    {currentStatus === "processing" && "Training Model..."}
-                    {currentStatus !== "uploading" &&
-                      currentStatus !== "processing" &&
-                      "Create Project & Train Model"}
-                  </Button>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-2 font-third">
+                        Project Name
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g., My Movie Recommender"
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <motion.div
+                        whileHover={{ scale: 1.0 }}
+                        className="relative p-6 border-2 border-dashed border-slate-300 rounded-2xl bg-gradient-to-br from-blue-50/50 via-white to-cyan-50/30 hover:border-cyan-400 transition-all duration-300 overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-2xl"></div>
+                        
+                        <div className="relative">
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-md ">
+                              <FileText className="w-5 h-5 text-white" />
+                            </div>
+                            <h3 className="font-bold text-base text-gray-900 font-third">
+                              Content Data
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-4 font-third">
+                            Upload item details (e.g., movies.csv)
+                          </p>
+                          <Input
+                            type="file"
+                            accept=".csv"
+                            onChange={(e) =>
+                              setContentFile(
+                                e.target.files ? e.target.files[0] : null
+                              )
+                            }
+                          />
+                          <AnimatePresence>
+                            {contentFile && (
+                              <SchemaMapper
+                                title="Map Content Schema"
+                                headers={contentHeaders}
+                                schema={contentSchema}
+                                onChange={setContentSchema}
+                                schemaKeys={[
+                                  { key: "item_id", label: "Item ID Column" },
+                                  { key: "item_title", label: "Item Title Column" },
+                                  {
+                                    key: "feature_cols",
+                                    label: "Feature Columns",
+                                    multi: true,
+                                  },
+                                ]}
+                              />
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        whileHover={{ scale: 1.0 }}
+                        className="relative p-6 border-2 border-dashed border-slate-300 rounded-2xl bg-gradient-to-br from-rose-50/50 via-white to-pink-50/30 hover:border-rose-400 transition-all duration-300 overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-200/20 to-pink-200/20 rounded-full blur-2xl"></div>
+                        
+                        <div className="relative">
+                          <div className="flex items-center space-x-3 mb-4">
+                            <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                              <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <h3 className="font-bold text-base text-gray-900 font-third">
+                              Interaction Data
+                            </h3>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-4 font-third">
+                            Upload user ratings (e.g., ratings.csv)
+                          </p>
+                          <Input
+                            type="file"
+                            accept=".csv"
+                            onChange={(e) =>
+                              setInteractionFile(
+                                e.target.files ? e.target.files[0] : null
+                              )
+                            }
+                          />
+                          <AnimatePresence>
+                            {interactionFile && (
+                              <SchemaMapper
+                                title="Map Interaction Schema"
+                                headers={interactionHeaders}
+                                schema={interactionSchema}
+                                onChange={setInteractionSchema}
+                                schemaKeys={[
+                                  { key: "user_id", label: "User ID Column" },
+                                  { key: "item_id", label: "Item ID Column" },
+                                  { key: "rating", label: "Rating Column" },
+                                ]}
+                              />
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    </div>
+
+                    <Button
+                      onClick={handleCreateProject}
+                      disabled={
+                        currentStatus === "uploading" ||
+                        currentStatus === "processing"
+                      }
+                      icon={
+                        currentStatus === "uploading" ||
+                        currentStatus === "processing"
+                          ? Loader2
+                          : Zap
+                      }
+                    >
+                      {currentStatus === "uploading" && "Uploading Files..."}
+                      {currentStatus === "processing" && "Training Model..."}
+                      {currentStatus !== "uploading" &&
+                        currentStatus !== "processing" &&
+                        "Create Project & Train Model"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>
 
             <Card>
-              <div className="p-8">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-br from-rose-900 to-cyan-800 rounded-4xl flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Get Recommendations
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      Generate personalized suggestions
-                    </p>
-                  </div>
-                </div>
-
-                {!selectedProjectId ? (
-                  <div className="text-center p-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
-                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 font-medium">
-                      Please select a "Ready" project to begin
-                    </p>
-                  </div>
-                ) : currentStatus === "processing" ? (
-                  <div className="text-center p-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-                    <Loader2 className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-spin" />
-                    <p className="font-semibold text-blue-600 text-lg">
-                      Processing your project...
-                    </p>
-                    <p className="text-sm text-gray-600 mt-2">
-                      This may take a few moments
-                    </p>
-                  </div>
-                ) : errorMessage ? (
-                  <div className="p-6 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl flex items-start space-x-3">
-                    <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
+              <div className="relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-100/30 to-teal-100/30 rounded-full blur-3xl"></div>
+                
+                <div className="relative p-8">
+                  <div className="flex items-center space-x-4 mb-8">
+                    
                     <div>
-                      <p className="font-semibold">Error</p>
-                      <p className="text-sm mt-1">{errorMessage}</p>
+                      <h2 className="text-2xl font-bold text-gray-900 font-main">
+                        Test Your Model...
+                      </h2>
+                      <p className="text-sm text-gray-600 font-third">
+                        Generate personalized suggestions
+                      </p>
                     </div>
                   </div>
-                ) : currentStatus === "ready" && selectedProject ? (
-                  <div className="space-y-6">
-                    <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">
-                        {selectedProject.project_name}
-                      </h3>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">
-                          Model Type:
-                        </span>
-                        <span
-                          className={`text-xs font-bold px-3 py-1 rounded-full ${
-                            selectedProject.model_type === "content"
-                              ? "bg-green-100 text-green-800"
-                              : selectedProject.model_type === "collaborative"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-purple-100 text-purple-800"
-                          }`}
-                        >
-                          {selectedProject.model_type?.toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
 
-                    {(selectedProject.model_type === "content" ||
-                      selectedProject.model_type === "hybrid") && (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Select Item
-                        </label>
-                        <Select
-                          value={selectedItemTitle}
-                          onChange={(e) =>
-                            setSelectedItemTitle(e.target.value)
-                          }
-                          disabled={loadingItems}
-                        >
-                          <option value="">
-                            {loadingItems
-                              ? "Loading items..."
-                              : itemsList.length === 0
-                              ? "No items"
-                              : "Select an item..."}
-                          </option>
-                          {itemsList.map((item) => (
-                            <option key={item.id} value={item.title}>
-                              {item.title}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    )}
-
-                    {(selectedProject.model_type === "collaborative" ||
-                      selectedProject.model_type === "hybrid") && (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Select User
-                        </label>
-                        <Select
-                          value={selectedUserId}
-                          onChange={(e) =>
-                            setSelectedUserId(e.target.value)
-                          }
-                          disabled={loadingUsers}
-                        >
-                          <option value="">
-                            {loadingUsers
-                              ? "Loading users..."
-                              : usersList.length === 0
-                              ? "No users"
-                              : "Select a user..."}
-                          </option>
-                          {usersList.map((user) => (
-                            <option key={user.id} value={user.id}>
-                              User {user.id}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    )}
-
-                    <Button
-                      onClick={handleGetRecommendations}
-                      disabled={isLoadingRecs}
-                      icon={isLoadingRecs ? Loader2 : Play}
+                  {!selectedProjectId ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center p-16 bg-gradient-to-br from-gray-50 via-slate-50 to-gray-50 rounded-2xl border-2 border-dashed border-gray-300"
                     >
-                      {isLoadingRecs ? "Generating..." : "Get Recommendations"}
-                    </Button>
-
-                    {recommendations && (
-                      <div className="pt-4">
-                        <div className="flex items-center space-x-2 mb-4">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                          <h3 className="text-lg font-bold text-gray-900">
-                            Top Recommendations
-                          </h3>
-                        </div>
-                        <div className="space-y-2">
-                          {recommendations.map((rec, index) => {
-                            const titleKey = Object.keys(rec).find(
-                              (k) =>
-                                k.toLowerCase().includes("title") ||
-                                k.toLowerCase().includes("name")
-                            );
-                            const idKey = Object.keys(rec).find((k) =>
-                              k.toLowerCase().includes("id")
-                            );
-                            return (
-                              <div
-                                key={index}
-                                className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-200"
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-600 to-indigo-200 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                    {index + 1}
-                                  </div>
-                                  <p className="text-gray-900 font-medium">
-                                    {titleKey
-                                      ? rec[titleKey]
-                                      : `ID: ${rec[idKey]}`}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <motion.div
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      </motion.div>
+                      <p className="text-gray-600 font-semibold font-third text-lg">
+                        Please select a "Ready" project to begin
+                      </p>
+                      <p className="text-gray-500 font-third text-sm mt-2">
+                        Choose from the projects list on the right
+                      </p>
+                    </motion.div>
+                  ) : currentStatus === "processing" ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center p-16 bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 rounded-2xl border-2 border-blue-200"
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Loader2 className="w-16 h-16 text-cyan-600 mx-auto mb-5" />
+                      </motion.div>
+                      <p className="font-bold text-cyan-700 text-xl font-main">
+                        Processing your project...
+                      </p>
+                      <p className="text-sm text-gray-600 mt-2 font-third">
+                        This may take a few moments
+                      </p>
+                    </motion.div>
+                  ) : errorMessage ? (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="p-6 bg-gradient-to-r from-red-50 to-rose-50 border-2 border-red-200 text-red-700 rounded-2xl flex items-start space-x-4"
+                    >
+                      <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold font-third">Error</p>
+                        <p className="text-sm mt-1 font-third">{errorMessage}</p>
                       </div>
-                    )}
-                  </div>
-                ) : null}
+                    </motion.div>
+                  ) : currentStatus === "ready" && selectedProject ? (
+                    <div className="space-y-6">
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-6 bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 rounded-2xl border-2 border-cyan-200 shadow-sm"
+                      >
+                        <h3 className="text-xl font-bold text-gray-900 mb-3 font-main">
+                          {selectedProject.project_name}
+                        </h3>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm text-gray-600 font-third font-semibold">
+                            Model Type:
+                          </span>
+                          <motion.span
+                            whileHover={{ scale: 1.05 }}
+                            className={`text-xs font-bold px-4 py-2 rounded-full shadow-sm ${
+                              selectedProject.model_type === "content"
+                                ? "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 border-2 border-emerald-200"
+                                : selectedProject.model_type === "collaborative"
+                                ? "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border-2 border-amber-200"
+                                : "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-2 border-purple-200"
+                            }`}
+                          >
+                            {selectedProject.model_type?.toUpperCase()}
+                          </motion.span>
+                        </div>
+                      </motion.div>
+
+                      {(selectedProject.model_type === "content" ||
+                        selectedProject.model_type === "hybrid") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 }}
+                        >
+                          <label className="block text-sm font-bold text-gray-700 mb-2 font-third">
+                            Select Item
+                          </label>
+                          <Select
+                            value={selectedItemTitle}
+                            onChange={(e) =>
+                              setSelectedItemTitle(e.target.value)
+                            }
+                            disabled={loadingItems}
+                          >
+                            <option value="">
+                              {loadingItems
+                                ? "Loading items..."
+                                : itemsList.length === 0
+                                ? "No items"
+                                : "Select an item..."}
+                            </option>
+                            {itemsList.map((item) => (
+                              <option key={item.id} value={item.title}>
+                                {item.title}
+                              </option>
+                            ))}
+                          </Select>
+                        </motion.div>
+                      )}
+
+                      {(selectedProject.model_type === "collaborative" ||
+                        selectedProject.model_type === "hybrid") && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <label className="block text-sm font-bold text-gray-700 mb-2 font-third">
+                            Select User
+                          </label>
+                          <Select
+                            value={selectedUserId}
+                            onChange={(e) =>
+                              setSelectedUserId(e.target.value)
+                            }
+                            disabled={loadingUsers}
+                          >
+                            <option value="">
+                              {loadingUsers
+                                ? "Loading users..."
+                                : usersList.length === 0
+                                ? "No users"
+                                : "Select a user..."}
+                            </option>
+                            {usersList.map((user) => (
+                              <option key={user.id} value={user.id}>
+                                User {user.id}
+                              </option>
+                            ))}
+                          </Select>
+                        </motion.div>
+                      )}
+
+                      <Button
+                        onClick={handleGetRecommendations}
+                        disabled={isLoadingRecs}
+                        icon={isLoadingRecs ? Loader2 : Play}
+                      >
+                        {isLoadingRecs ? "Generating..." : "Get Recommendations"}
+                      </Button>
+
+                      <AnimatePresence>
+                        {recommendations && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="pt-4"
+                          >
+                            <div className="flex items-center space-x-3 mb-6">
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", duration: 0.6 }}
+                              >
+                                <Award className="w-6 h-6 text-emerald-600" />
+                              </motion.div>
+                              <h3 className="text-xl font-bold text-gray-900 font-main">
+                                Top Recommendations
+                              </h3>
+                            </div>
+                            <div className="space-y-3">
+                              {recommendations.map((rec, index) => {
+                                const titleKey = Object.keys(rec).find(
+                                  (k) =>
+                                    k.toLowerCase().includes("title") ||
+                                    k.toLowerCase().includes("name")
+                                );
+                                const idKey = Object.keys(rec).find((k) =>
+                                  k.toLowerCase().includes("id")
+                                );
+                                return (
+                                  <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                                    whileHover={{ scale: 1.02, x: 4 }}
+                                    className="p-5 bg-gradient-to-r from-white via-emerald-50/30 to-teal-50/30 rounded-2xl border-2 border-slate-200 hover:border-emerald-300 transition-all duration-300 shadow-sm hover:shadow-md"
+                                  >
+                                    <div className="flex items-center space-x-4">
+                                      <motion.div
+                                        whileHover={{ rotate: 360 }}
+                                        transition={{ duration: 0.6 }}
+                                        className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg flex-shrink-0"
+                                      >
+                                        {index + 1}
+                                      </motion.div>
+                                      <p className="text-gray-900 font-semibold font-third flex-1">
+                                        {titleKey
+                                          ? rec[titleKey]
+                                          : `ID: ${rec[idKey]}`}
+                                      </p>
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </Card>
           </div>
 
           {/* Right side: projects */}
-          <Card className="lg:col-span-1 h-fit sticky top-24">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                My Projects
-              </h2>
-              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                {projects.length === 0 && (
-                  <div className="text-center p-8 bg-gray-50 rounded-xl">
-                    <p className="text-gray-500">No projects yet</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Create one to get started
-                    </p>
-                  </div>
-                )}
-                {projects.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => handleSelectProject(p.id)}
-                    className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                      selectedProjectId === p.id
-                        ? "bg-gradient-to-br from-blue-50 to-indigo-50 border-rose-800 shadow-md"
-                        : "hover:bg-gray-50 border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded-md">
-                        #{p.id}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteProject(e, p.id)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Delete project"
-                          aria-label="Delete project"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <span
-                          className={`flex items-center space-x-1 text-xs font-bold ${
-                            p.status === "ready"
-                              ? "text-green-600"
-                              : p.status === "error"
-                              ? "text-red-600"
-                              : "text-yellow-600"
-                          }`}
-                        >
-                          {p.status === "ready" && (
-                            <CheckCircle className="w-3 h-3" />
-                          )}
-                          {p.status === "processing" && (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          )}
-                          {p.status === "error" && (
-                            <AlertCircle className="w-3 h-3" />
-                          )}
-                          <span className="uppercase">{p.status}</span>
-                        </span>
-                      </div>
-                    </div>
-                    <div className="font-bold text-gray-900 mb-2">
-                      {p.project_name}
-                    </div>
-                    <span
-                      className={`inline-block text-xs font-bold uppercase px-3 py-1 rounded-full ${
-                        p.model_type === "content"
-                          ? "bg-green-100 text-green-800"
-                          : p.model_type === "collaborative"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : p.model_type === "hybrid"
-                          ? "bg-purple-100 text-purple-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <Card className="lg:col-span-1 h-fit sticky top-24">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 font-main">
+                    My Projects
+                  </h2>
+                  <motion.div
+                    animate={{ scale: [1, 2.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-gradient-to-r from-rose-500 to-cyan-500"
+                  ></motion.div>
+                </div>
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-hide">
+                  <style jsx>{`
+                    .scrollbar-hide::-webkit-scrollbar {
+                      display: none;
+                    }
+                    .scrollbar-hide {
+                      -ms-overflow-style: none;
+                      scrollbar-width: none;
+                    }
+                  `}</style>
+                  
+                  {projects.length === 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center p-12 bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl border-2 border-dashed border-gray-300"
                     >
-                      {p.model_type || "N/A"}
-                    </span>
-                  </div>
-                ))}
+                      <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500 font-semibold font-third">No projects yet</p>
+                      <p className="text-xs text-gray-400 mt-2 font-third">
+                        Create one to get started
+                      </p>
+                    </motion.div>
+                  )}
+                  
+                  <AnimatePresence>
+                    {projects.map((p, index) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                        whileHover={{ scale: 1.0, x: 0 }}
+                        onClick={() => handleSelectProject(p.id)}
+                        className={`group relative p-5 border-2 rounded-2xl cursor-pointer transition-all duration-300 overflow-hidden ${
+                          selectedProjectId === p.id
+                            ? "bg-gradient-to-br from-cyan-50 via-blue-50 to-cyan-50 border-cyan-400 shadow-lg shadow-cyan-100"
+                            : "hover:bg-gradient-to-br hover:from-slate-50 hover:to-gray-50 border-slate-200 hover:border-slate-300 shadow-sm "
+                        }`}
+                      >
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+                        
+                        <div className="relative">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-sec bg-gradient-to-r from-slate-100 to-gray-100 text-gray-700 px-3 py-1.5 rounded-lg font-bold border border-slate-200">
+                              #{p.id}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <motion.button
+                                whileHover={{ scale: 1.1, rotate: 0 }}
+                                whileTap={{ scale: 0.9 }}
+                                type="button"
+                                onClick={(e) => handleDeleteProject(e, p.id)}
+                                className="p-2 rounded-xl text-gray-400 hover:text-red-600 transition-colors "
+                                title="Delete project"
+                                aria-label="Delete project"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </motion.button>
+                              <span
+                                className={`flex items-center space-x-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${
+                                  p.status === "ready"
+                                    ? "text-emerald-700 bg-emerald-100 border-2 border-emerald-200"
+                                    : p.status === "error"
+                                    ? "text-red-700 bg-red-100 border-2 border-red-200"
+                                    : "text-amber-700 bg-amber-100 border-2 border-amber-200"
+                                }`}
+                              >
+                                {p.status === "ready" && (
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                )}
+                                {p.status === "processing" && (
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  >
+                                    <Loader2 className="w-3.5 h-3.5" />
+                                  </motion.div>
+                                )}
+                                {p.status === "error" && (
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                )}
+                                <span className="uppercase font-third">{p.status}</span>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="font-bold text-gray-900 mb-3 text-lg font-third">
+                            {p.project_name}
+                          </div>
+                          <motion.span
+                            whileHover={{ scale: 1.0 }}
+                            className={`inline-block text-xs font-bold uppercase px-4 py-2 rounded-full  ${
+                              p.model_type === "content"
+                                ? "bg-gradient-to-r from-emerald-300 to-teal-100 text-emerald-800 border-2 border-emerald-200"
+                                : p.model_type === "collaborative"
+                                ? "bg-gradient-to-r from-pink-300 to-yellow-100 text-amber-800 border-2 border-amber-200"
+                                : p.model_type === "hybrid"
+                                ? "bg-gradient-to-r from-blue-300 to-pink-100 text-purple-800 border-2 border-purple-200"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {p.model_type || "N/A"}
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </div>

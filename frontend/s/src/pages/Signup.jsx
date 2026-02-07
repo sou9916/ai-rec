@@ -48,18 +48,18 @@ export default function Signup() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-4xl shadow-xl border border-gray-100 p-8">
           <div className="flex items-center justify-center space-x-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-950 to-cyan-600 rounded-xl flex items-center justify-center shadow-md">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-cyan-800 rounded-xl flex items-center justify-center shadow-md">
               <Layers className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold bg-gradient-to-r from-neutral-800 to-cyan-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-extrabold bg-gradient-to-r from-neutral-800 to-rose-600 bg-clip-text text-transparent font-main">
                 Recom BaaS
               </h1>
-              <p className="text-xs text-gray-600">Create your account</p>
+              <p className="text-sm text-gray-800 font-sec">Create your account</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5 font-third">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
               <input
@@ -100,7 +100,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3.5 font-semibold rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-800 to-cyan-600 hover:from-cyan-800 hover:via-cyan-600 hover:to-cyan-800 text-white shadow-lg shadow-cyan-500/30 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full px-6 py-3.5 font-semibold rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-800 to-cyan-600 hover:from-cyan-800 hover:via-cyan-600 hover:to-cyan-800 text-white shadow-lg shadow-cyan-500/30 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
