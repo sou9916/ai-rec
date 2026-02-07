@@ -51,14 +51,14 @@ const Select = (props) => (
 const Button = ({ children, variant = "primary", icon: Icon, ...props }) => {
   const variants = {
     primary:
-      "bg-gradient-to-br from-rose-800 via-cyan-800 to-cyan-800 hover:from-rose-700 hover:via-rose-600 hover:to-cyan-700 text-white shadow-xs  hover:shadow-xs  cursor-pointer",
+      "bg-gradient-to-br from-rose-600 to-cyan-600 hover:from-rose-700 hover:to-cyan-700 text-white shadow-xs  hover:shadow-xs  cursor-pointer",
     secondary:
       "bg-white border-2 border-slate-200 hover:border-cyan-400 text-slate-700 hover:text-slate-900 shadow-sm ",
   };
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02, y: -2 }}
+      whileHover={{ scale: 1.0, y: 0 }}
       whileTap={{ scale: 0.98 }}
       {...props}
       className={`w-full px-6 py-3.5 text-sm font-bold rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-third relative overflow-hidden ${variants[variant]}`}
@@ -529,7 +529,7 @@ function RecommenderPanel() {
               </div>
               <p className="text-3xl font-bold text-slate-900 font-main">{projectStats.total}</p>
               <p className="text-sm text-slate-500 mt-2 font-third flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-cyan-400"></span>
+                <span className="w-1 h-1 rounded-full bg-rose-800"></span>
                 All time
               </p>
             </div>
@@ -548,11 +548,11 @@ function RecommenderPanel() {
             <div className="relative p-6">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-slate-600 font-third">Ready to Recommend</p>
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <CheckCircle className="w-4 h-4 text-rose-500" />
               </div>
               <p className="text-3xl font-bold text-slate-900 font-main">{projectStats.ready}</p>
               <p className="text-xs text-slate-500 mt-2 font-third flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-lime-800"></span>
+                <span className="w-1 h-1 rounded-full bg-rose-800"></span>
                 Active models
               </p>
             </div>
@@ -571,7 +571,7 @@ function RecommenderPanel() {
             <div className="relative p-6">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-slate-600 font-third">Training in Progress</p>
-                <Clock className="w-4 h-4 text-neutral-900" />
+                <Clock className="w-4 h-4 text-rose-600" />
               </div>
               <p className="text-3xl font-bold text-neutral-900 font-main">{projectStats.processing}</p>
               <p className="text-xs text-slate-500 mt-2 font-third flex items-center gap-1">

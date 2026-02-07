@@ -108,10 +108,12 @@ const StatCard = ({ label, value, hint, delay = 0 }) => (
   >
     <div className="absolute inset-0 bg-gradient-to-br from-rose-50/0 via-cyan-50/0 to-rose-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
     <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-rose-100/20 to-cyan-100/20 rounded-full blur-2xl transform translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform duration-700"></div>
-    
+
     <div className="relative p-6">
       <div className="flex items-start justify-between mb-3">
-        <p className="text-sm font-semibold text-slate-600 font-third">{label}</p>
+        <p className="text-sm font-semibold text-slate-600 font-third">
+          {label}
+        </p>
         <motion.div
           initial={{ rotate: 0 }}
           whileHover={{ rotate: 90 }}
@@ -120,7 +122,9 @@ const StatCard = ({ label, value, hint, delay = 0 }) => (
           <TrendingUp className="w-4 h-4 text-rose-900" />
         </motion.div>
       </div>
-      <p className="text-3xl font-bold text-slate-900 mb-2 font-main">{value}</p>
+      <p className="text-3xl font-bold text-slate-900 mb-2 font-main">
+        {value}
+      </p>
       {hint && (
         <p className="text-xs text-slate-500 font-third flex items-center gap-1">
           <span className="w-1 h-1 rounded-full bg-cyan-400"></span>
@@ -128,7 +132,7 @@ const StatCard = ({ label, value, hint, delay = 0 }) => (
         </p>
       )}
     </div>
-    
+
     <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
     <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
   </motion.div>
@@ -161,9 +165,9 @@ const HomeOverview = ({ onNavigate, summary }) => {
     loading = true,
   } = summary || {};
   const { user } = useAuth();
-  
+
   const userName = user?.name || user?.firstName || user?.username || "User";
-  
+
   const [serviceHealth, setServiceHealth] = useState({
     mlBackend: { status: "checking", latency: null },
     webhook: { status: "checking", latency: null },
@@ -325,16 +329,17 @@ const HomeOverview = ({ onNavigate, summary }) => {
       >
         <div className="relative bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-lg ">
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-rose-100/30 to-cyan-100/30 rounded-full blur-3xl"></div>
-          
+
           <div className="relative p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                
                 <div>
                   <p className="font-third text-lg font-bold text-slate-900 tracking-tight">
                     Project Status
                   </p>
-                  <p className="text-xs text-slate-500 font-third">Active deployments</p>
+                  <p className="text-xs text-slate-500 font-third">
+                    Active deployments
+                  </p>
                 </div>
               </div>
               <motion.div
@@ -350,7 +355,6 @@ const HomeOverview = ({ onNavigate, summary }) => {
             <div className="relative">
               {loading ? (
                 <div className="text-center py-16">
-                  
                   <p className="text-sm text-slate-500 font-medium mt-4">
                     Loading projects...
                   </p>
@@ -424,7 +428,6 @@ const HomeOverview = ({ onNavigate, summary }) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                
                 <p className="text-lg font-semibold text-slate-900 font-third">
                   Quick Actions
                 </p>
@@ -465,10 +468,9 @@ const HomeOverview = ({ onNavigate, summary }) => {
         className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-b-none border-t-cyan-100 border-slate-700 overflow-hidden  mt-6 mb-0 h-full py-3"
       >
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-rose-500/10 to-cyan-500/10 rounded-full blur-3xl"></div>
-        
+
         <div className="relative p-8">
           <p className="text-sm font-semibold font-third mb-8 text-slate-300 flex items-center gap-2">
-            
             Workspace Summary
           </p>
           <div className="grid grid-cols-3 gap-8">
@@ -520,16 +522,19 @@ const StatusCard = ({ name, status = "checking", endpoint, latency }) => {
 
   return (
     <motion.div
-      
       className={`group relative bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm  ${config.glow} `}
     >
-      <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
-      
+      <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+      <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
+
       <div className="relative p-6">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-semibold text-slate-900 font-third">{name}</span>
-          <span className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${config.badge}`}>
+          <span className="text-sm font-semibold text-slate-900 font-third">
+            {name}
+          </span>
+          <span
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${config.badge}`}
+          >
             {config.text}
           </span>
         </div>
@@ -555,8 +560,6 @@ const StatusCard = ({ name, status = "checking", endpoint, latency }) => {
           )}
         </div>
       </div>
-      
-      
     </motion.div>
   );
 };
@@ -607,29 +610,26 @@ const ProjectActivityItem = ({ project, onClick }) => {
 
       <div className="relative p-5">
         <div className="flex items-center gap-4">
-          
-            
-            {project.status === "training" && (
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500 to-rose-600 animate-ping opacity-30"></div>
-            )}
-         
+          {project.status === "training" && (
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyan-500 to-rose-600 animate-ping opacity-30"></div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 font-third">
               <h4 className="text-sm font-bold text-slate-900 truncate">
                 {project.name || project.project_name || "Unnamed Project"}
               </h4>
-              
-                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-rose-500 flex-shrink-0 transition-colors" />
-             
+
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-rose-500 flex-shrink-0 transition-colors" />
             </div>
             <p className="text-xs text-slate-500  font-third">
               ID: {project.id || project.project_id || "N/A"}
             </p>
           </div>
 
-          <div className={`px-3 py-1.5  font-third text-sm  flex items-center gap-1.5 `}>
-           
+          <div
+            className={`px-3 py-1.5  font-third text-sm  flex items-center gap-1.5 `}
+          >
             {config.text}
           </div>
         </div>
@@ -670,12 +670,13 @@ const QuickActionCard = ({
       onClick={onClick}
       className="group relative overflow-hidden bg-white border border-slate-200 rounded-3xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-lg"
     >
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+      ></div>
       <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
       <div className="relative flex items-center gap-4 p-5">
         <motion.div
-         
           className={`relative p-3 bg-gradient-to-br ${gradient} rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 flex-shrink-0`}
         >
           <Icon className="w-5 h-5 text-white relative z-10" />
@@ -687,9 +688,8 @@ const QuickActionCard = ({
             <h3 className="text-sm font-bold text-slate-900 group-hover:text-white transition-colors duration-300 truncate font-third">
               {title}
             </h3>
-            
-              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 flex-shrink-0" />
-            
+
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-300 flex-shrink-0" />
           </div>
           <p className="text-xs text-slate-600 group-hover:text-white/90 transition-colors duration-300 line-clamp-1 font-third">
             {description}
@@ -825,7 +825,11 @@ const AnalyticsView = ({ summary }) => {
                     key={app.app_name || i}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
-                    transition={{ delay: i * 0.1, duration: 0.5, type: "spring" }}
+                    transition={{
+                      delay: i * 0.1,
+                      duration: 0.5,
+                      type: "spring",
+                    }}
                     className="flex-1 flex flex-col items-center gap-3"
                   >
                     <div className="w-full relative group">
@@ -836,7 +840,7 @@ const AnalyticsView = ({ summary }) => {
                       >
                         <div className="absolute inset-0 bg-gradient-to-t from-white/0 via-white/10 to-white/20"></div>
                       </motion.div>
-                      
+
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                         <motion.div
                           initial={{ y: 10 }}
@@ -895,8 +899,12 @@ const AnalyticsView = ({ summary }) => {
         <div className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden">
           <div className="p-8">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-lg font-semibold font-third text-slate-900">Traffic Distribution</p>
-              <span className="text-xs text-slate-500 font-third">By application</span>
+              <p className="text-lg font-semibold font-third text-slate-900">
+                Traffic Distribution
+              </p>
+              <span className="text-xs text-slate-500 font-third">
+                By application
+              </span>
             </div>
 
             {loading ? (
@@ -935,7 +943,11 @@ const AnalyticsView = ({ summary }) => {
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${percent}%` }}
-                          transition={{ delay: idx * 0.1 + 0.3, duration: 0.8, ease: "easeOut" }}
+                          transition={{
+                            delay: idx * 0.1 + 0.3,
+                            duration: 0.8,
+                            ease: "easeOut",
+                          }}
                           className="h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 rounded-full relative overflow-hidden"
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer"></div>
@@ -956,8 +968,12 @@ const AnalyticsView = ({ summary }) => {
         <div className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden">
           <div className="p-8">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-lg font-semibold font-third text-slate-900">Top Applications</p>
-              <span className="text-xs text-slate-500 font-third">By request volume</span>
+              <p className="text-lg font-semibold font-third text-slate-900">
+                Top Applications
+              </p>
+              <span className="text-xs text-slate-500 font-third">
+                By request volume
+              </span>
             </div>
 
             {loading ? (
@@ -986,7 +1002,9 @@ const AnalyticsView = ({ summary }) => {
                   <tbody>
                     {usage
                       .slice()
-                      .sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0))
+                      .sort(
+                        (a, b) => (b.usage_count || 0) - (a.usage_count || 0),
+                      )
                       .map((u, idx) => {
                         const percent =
                           totalRequests > 0
@@ -1000,7 +1018,6 @@ const AnalyticsView = ({ summary }) => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.1, duration: 0.4 }}
-                            
                             className="border-b border-slate-100 transition-colors cursor-pointer"
                           >
                             <td className="py-4">
@@ -1053,17 +1070,19 @@ const MetricCard = ({ label, value, change, delay = 0 }) => (
   >
     <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
     <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
-    
+
     <div className="relative p-6">
-      <p className="text-sm font-semibold text-slate-500 mb-2 font-third">{label}</p>
-      <p className="text-3xl font-bold text-slate-900 mb-3 font-main">{value}</p>
+      <p className="text-sm font-semibold text-slate-500 mb-2 font-third">
+        {label}
+      </p>
+      <p className="text-3xl font-bold text-slate-900 mb-3 font-main">
+        {value}
+      </p>
       <p className="text-xs text-slate-500 font-third flex items-center gap-1">
         <span className="w-1 h-1 rounded-full bg-cyan-400"></span>
         {change}
       </p>
     </div>
-    
-    
   </motion.div>
 );
 
@@ -1106,7 +1125,9 @@ const BillingView = ({ summary }) => {
                   <p className="text-xs font-semibold text-slate-500 font-third mb-1">
                     Current plan
                   </p>
-                  <p className="text-2xl font-bold text-slate-900 font-main">Developer</p>
+                  <p className="text-2xl font-bold text-slate-900 font-main">
+                    Developer
+                  </p>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -1118,9 +1139,9 @@ const BillingView = ({ summary }) => {
                 </motion.button>
               </div>
               <p className="text-sm text-slate-600 font-third leading-relaxed">
-                Ideal for prototyping and small workloads. Includes generous free
-                quota and access to all core features of Recommender Studio and
-                Webhook Dashboard.
+                Ideal for prototyping and small workloads. Includes generous
+                free quota and access to all core features of Recommender Studio
+                and Webhook Dashboard.
               </p>
             </div>
           </motion.div>
@@ -1135,7 +1156,9 @@ const BillingView = ({ summary }) => {
               </p>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-700 font-third">Recommendation requests</span>
+                  <span className="text-slate-700 font-third">
+                    Recommendation requests
+                  </span>
                   <span className="text-xl font-bold text-slate-900 font-main">
                     {loading ? "—" : totalRequests.toLocaleString()}
                   </span>
@@ -1152,8 +1175,8 @@ const BillingView = ({ summary }) => {
                 </div>
               </div>
               <p className="text-xs text-slate-500 mt-4 font-third">
-                Request counts are taken directly from the `webhooks.usage` table.
-                You can later plug in per-project quotas and limits.
+                Request counts are taken directly from the `webhooks.usage`
+                table. You can later plug in per-project quotas and limits.
               </p>
             </div>
           </motion.div>
@@ -1181,7 +1204,9 @@ const BillingView = ({ summary }) => {
                   transition={{ type: "spring", duration: 0.6 }}
                   className="text-3xl font-bold text-slate-900 font-main"
                 >
-                  {loading || estimatedCost === null ? "—" : `$${estimatedCost}`}
+                  {loading || estimatedCost === null
+                    ? "—"
+                    : `$${estimatedCost}`}
                 </motion.p>
               </div>
               <p className="text-xs text-slate-500 mt-6 font-third">
@@ -1199,7 +1224,7 @@ const BillingView = ({ summary }) => {
             className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-50 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-rose-500/20 to-cyan-500/20 rounded-full blur-3xl"></div>
-            
+
             <div className="relative p-8">
               <p className="text-sm font-semibold text-slate-300 font-third mb-4">
                 Invoices & exports
@@ -1208,8 +1233,9 @@ const BillingView = ({ summary }) => {
                 Export billing history for finance and analytics
               </p>
               <p className="text-xs text-slate-400 font-third">
-                Attach your own backend endpoint here to stream invoices, payment
-                methods, and CSV exports while keeping the minimal layout.
+                Attach your own backend endpoint here to stream invoices,
+                payment methods, and CSV exports while keeping the minimal
+                layout.
               </p>
             </div>
           </motion.div>
@@ -1229,7 +1255,9 @@ const BillingView = ({ summary }) => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-2 flex-shrink-0"></span>
-                  <span>Alert on sudden spikes per project or per API key.</span>
+                  <span>
+                    Alert on sudden spikes per project or per API key.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0"></span>
@@ -1301,10 +1329,14 @@ const SettingsView = () => (
           className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden"
         >
           <div className="p-8">
-            <p className="text-sm font-semibold text-slate-500 font-third mb-6">API endpoints</p>
+            <p className="text-sm font-semibold text-slate-500 font-third mb-6">
+              API endpoints
+            </p>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-slate-500 mb-2 font-third">Auth service</p>
+                <p className="text-xs text-slate-500 mb-2 font-third">
+                  Auth service
+                </p>
                 <code className="block rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 px-4 py-3 text-xs text-slate-800 break-all font-mono">
                   http://localhost:8080
                 </code>
@@ -1318,16 +1350,18 @@ const SettingsView = () => (
                 </code>
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-2 font-third">Webhook service</p>
+                <p className="text-xs text-slate-500 mb-2 font-third">
+                  Webhook service
+                </p>
                 <code className="block rounded-xl bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 px-4 py-3 text-xs text-slate-800 break-all font-mono">
                   http://localhost:3001
                 </code>
               </div>
             </div>
             <p className="text-xs text-slate-500 mt-4 font-third">
-              These URLs are currently configured via environment variables in the
-              backend and the Vite frontend. You can adapt this section later to
-              surface workspace-level configuration.
+              These URLs are currently configured via environment variables in
+              the backend and the Vite frontend. You can adapt this section
+              later to surface workspace-level configuration.
             </p>
           </div>
         </motion.div>
@@ -1339,7 +1373,9 @@ const SettingsView = () => (
           className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden"
         >
           <div className="p-8">
-            <p className="text-sm font-semibold text-slate-500 font-third mb-4">API tokens</p>
+            <p className="text-sm font-semibold text-slate-500 font-third mb-4">
+              API tokens
+            </p>
             <p className="text-xs text-slate-600 mb-4 font-third">
               Use personal API tokens for CLI access or automation. Webhook apps
               will still use their own scoped API keys.
@@ -1375,7 +1411,7 @@ const SettingsView = () => (
           className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-50 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl"
         >
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-rose-500/20 to-cyan-500/20 rounded-full blur-3xl"></div>
-          
+
           <div className="relative p-8">
             <p className="text-sm font-semibold text-slate-300 font-third mb-3">
               Theme & appearance
