@@ -775,7 +775,7 @@ const AnalyticsView = ({ summary }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.6 }}
-        className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-500 overflow-hidden mt-6"
+        className="bg-white rounded-3xl border border-slate-200 shadow-lg  duration-500 overflow-hidden mt-6"
       >
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
@@ -830,7 +830,7 @@ const AnalyticsView = ({ summary }) => {
                   >
                     <div className="w-full relative group">
                       <motion.div
-                        whileHover={{ scale: 1.05 }}
+                        whileHover={{ scale: 1.0 }}
                         className="w-full rounded-t-2xl bg-gradient-to-t from-emerald-600 via-teal-500 to-emerald-400 transition-all duration-300 hover:from-emerald-700 hover:via-teal-600 cursor-pointer shadow-lg relative overflow-hidden"
                         style={{ height: `${height}%`, minHeight: "24px" }}
                       >
@@ -1000,13 +1000,13 @@ const AnalyticsView = ({ summary }) => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.1, duration: 0.4 }}
-                            whileHover={{ backgroundColor: "rgb(236 253 245)" }}
+                            
                             className="border-b border-slate-100 transition-colors cursor-pointer"
                           >
                             <td className="py-4">
                               <motion.span
-                                whileHover={{ scale: 1.1 }}
-                                className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 font-bold text-xs shadow-sm"
+                                whileHover={{ scale: 1.0 }}
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-emerald-100 to-cyan-100 text-cyan-700 font-bold text-xs shadow-sm"
                               >
                                 {idx + 1}
                               </motion.span>
@@ -1048,14 +1048,14 @@ const MetricCard = ({ label, value, change, delay = 0 }) => (
     initial={{ opacity: 0, scale: 0.9 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay, duration: 0.4, type: "spring" }}
-    whileHover={{ scale: 1.02, y: -4 }}
-    className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
+    whileHover={{ scale: 1.0, y: 0 }}
+    className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-300"
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-rose-50/0 via-cyan-50/0 to-rose-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-rose-100/20 to-cyan-100/20 rounded-full blur-2xl transform translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform duration-700"></div>
+    <div className="absolute bottom-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-rose-400 via-cyan-100 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+    <div className="absolute top-0 left-0 right-0 h-[0.5px] bg-gradient-to-r from-cyan-400 via-cyan-100 to-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right"></div>
     
     <div className="relative p-6">
-      <p className="text-xs font-semibold text-slate-500 mb-2 font-third">{label}</p>
+      <p className="text-sm font-semibold text-slate-500 mb-2 font-third">{label}</p>
       <p className="text-3xl font-bold text-slate-900 mb-3 font-main">{value}</p>
       <p className="text-xs text-slate-500 font-third flex items-center gap-1">
         <span className="w-1 h-1 rounded-full bg-cyan-400"></span>
@@ -1063,7 +1063,7 @@ const MetricCard = ({ label, value, change, delay = 0 }) => (
       </p>
     </div>
     
-    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 via-cyan-400 to-rose-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+    
   </motion.div>
 );
 
@@ -1540,7 +1540,7 @@ export default function AppShell() {
           onMouseLeave={() => isSidebarOpen && setIsSidebarOpen(false)}
         >
           <div className="h-full flex flex-col">
-            <div className="px-3 py-6 border-b border-gray-200 flex-shrink-0">
+            <div className="px-3 py-6 border-b rounded-b-3xl border-gray-200 flex-shrink-0 bg-rose-50 shadow-sm">
               <div className="flex items-center gap-3">
                 <motion.div
                   whileHover={{ rotate: 0 }}
@@ -1622,7 +1622,7 @@ export default function AppShell() {
               </div>
             </nav>
 
-            <div className="px-1 py-5 border-t border-gray-200 bg-gradient-to-br from-red-50/50 to-rose-50/30 flex-shrink-0">
+            <div className="px-1 py-5 border-t shadow- rounded-t-3xl border-gray-300 bg-gradient-to-br from-red-50/50 to-rose-50/30 flex-shrink-0">
               <motion.button
                 whileHover={{ scale: 1.0 }}
                 whileTap={{ scale: 0.98 }}
