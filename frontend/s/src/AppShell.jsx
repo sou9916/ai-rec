@@ -462,7 +462,7 @@ const HomeOverview = ({ onNavigate, summary }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7, duration: 0.6 }}
-        className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-b-none border-t-cyan-100 border-slate-700 overflow-hidden shadow-2xl  mt-6 mb-0 "
+        className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-b-none border-t-cyan-100 border-slate-700 overflow-hidden  mt-6 mb-0 h-full py-3"
       >
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-rose-500/10 to-cyan-500/10 rounded-full blur-3xl"></div>
         
@@ -1622,18 +1622,18 @@ export default function AppShell() {
               </div>
             </nav>
 
-            <div className="px-4 py-5 border-t border-gray-200 bg-gradient-to-br from-red-50/50 to-rose-50/30 flex-shrink-0">
+            <div className="px-1 py-5 border-t border-gray-200 bg-gradient-to-br from-red-50/50 to-rose-50/30 flex-shrink-0">
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.0 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleLogout}
-                className="group w-full px-3 py-3.5 rounded-2xl text-sm font-medium flex items-center transition-all hover:bg-red-100 border-2 border-transparent hover:border-red-200"
+                className="group w-full px-3 py-3.5 rounded-2xl text-sm font-medium flex items-center transition-all hover:bg-red-100 border-1 border-transparent hover:border-red-200 cursor-pointer"
                 title="Sign out"
               >
                 <span className="flex items-center gap-3 w-full">
                   <motion.span
                     whileHover={{ rotate: 180 }}
-                    transition={{ duration: 0.4 }}
+                    transition={{ duration: 0.2 }}
                     className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-red-100 group-hover:bg-gradient-to-br group-hover:from-red-500 group-hover:to-rose-600 flex-shrink-0 transition-all duration-300 shadow-sm"
                   >
                     <LogOut className="w-5 h-5 text-rose-700 group-hover:text-white transition-colors duration-300" />
